@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bookfolloxa - Influencer Empire</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="user-info">
+            <div class="avatar">
+                <div class="avatar-emoji">👤</div>
+            </div>
+            <div class="user-stats">
+                <div class="username" id="username">Player</div>
+                <div class="level">Level <span id="userLevel">1</span></div>
+            </div>
+        </div>
+        
+        <div class="top-stats">
+            <div class="stat-item">
+                <span class="stat-icon">💰</span>
+                <span id="bflxBalance">1,000</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">👥</span>
+                <span id="followersCount">0</span>
+            </div>
+        </div>
+        
+        <button class="menu-btn" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- Main Game Area -->
+    <div class="game-container">
+        <!-- Character -->
+        <div class="character-container">
+            <div class="character" id="character" ontouchstart="tap(event)" onclick="tap(event)">
+                <div class="tap-button">
+                    <div class="tap-icon">❤️</div>
+                </div>
+                <div class="tap-effect" id="tapEffect"></div>
+            </div>
+            
+            <!-- Floating Numbers -->
+            <div class="floating-numbers" id="floatingNumbers"></div>
+        </div>
+        
+        <!-- Income Display -->
+        <div class="income-display">
+            <div class="income-label">Income per hour</div>
+            <div class="income-value">
+                <span class="income-icon">💰</span>
+                <span id="incomePerHour">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Energy Bar -->
+    <div class="energy-container">
+        <div class="energy-icon">⚡</div>
+        <div class="energy-bar">
+            <div class="energy-fill" id="energyFill"></div>
+        </div>
+        <div class="energy-text">
+            <span id="currentEnergy">1000</span> / <span id="maxEnergy">1000</span>
+        </div>
+        <div class="per-tap">
+            +<span id="tapPower">5</span> per tap
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="showScreen('home')">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">HOME</div>
+        </button>
+        <button class="nav-btn" onclick="showScreen('influencers')">
+            <div class="nav-icon">👥</div>
+            <div class="nav-label">INFLUENCERS</div>
+        </button>
+        <button class="nav-btn" onclick="showScreen('campaigns')">
+            <div class="nav-icon">📋</div>
+            <div class="nav-label">CAMPAIGNS</div>
+        </button>
+        <button class="nav-btn" onclick="showScreen('tasks')">
+            <div class="nav-icon">✅</div>
+            <div class="nav-label">TASKS</div>
+        </button>
+        <button class="nav-btn" onclick="showScreen('more')">
+            <div class="nav-icon">⋯</div>
+            <div class="nav-label">MORE</div>
+        </button>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <h3>Menu</h3>
+            <button class="close-btn" onclick="toggleMenu()">✕</button>
+        </div>
+        <div class="menu-items">
+            <button class="menu-item" onclick="showScreen('upgrade')">
+                <span class="menu-icon">⬆️</span>
+                <span>Upgrade</span>
+            </button>
+            <button class="menu-item" onclick="showScreen('leaderboard')">
+                <span class="menu-icon">🏆</span>
+                <span>Leaderboard</span>
+            </button>
+            <button class="menu-item" onclick="showScreen('invite')">
+                <span class="menu-icon">👥</span>
+                <span>Invite Friends</span>
+            </button>
+            <button class="menu-item" onclick="showScreen('wallet')">
+                <span class="menu-icon">💰</span>
+                <span>Wallet</span>
+            </button>
+            <button class="menu-item" onclick="showScreen('settings')">
+                <span class="menu-icon">⚙️</span>
+                <span>Settings</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Overlay for menu -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Modal Screens -->
+    <div class="modal" id="influencersModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👥 Hire Influencer</h2>
+                <button class="close-modal" onclick="closeModal('influencersModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="influencer-list" id="influencerList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="campaignsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Campaigns</h2>
+                <button class="close-modal" onclick="closeModal('campaignsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="campaigns-list" id="campaignsList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="tasksModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✅ Tasks</h2>
+                <button class="close-modal" onclick="closeModal('tasksModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="tasks-tabs">
+                    <button class="tab-btn active" onclick="showTasks('daily')">Daily</button>
+                    <button class="tab-btn" onclick="showTasks('social')">Social</button>
+                    <button class="tab-btn" onclick="showTasks('achievements')">Achievements</button>
+                </div>
+                <div class="tasks-list" id="tasksList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
