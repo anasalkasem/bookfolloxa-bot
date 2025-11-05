@@ -796,6 +796,130 @@ def webapp_index():
 def webapp_files(filename):
     return send_from_directory('webapp', filename)
 
+@app.route('/api/user/<int:telegram_id>', methods=['POST'])
+def get_user_data(telegram_id):
+    """جلب بيانات المستخدم من قاعدة البيانات (مع التوثيق)"""
+    from flask import jsonify, request
+    try:
+        # Validate Telegram authentication
+        init_data = request.headers.get('X-Telegram-Init-Data') or request.json.get('_auth')
+        if not init_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from webapp.telegram_auth import validate_telegram_webapp_data
+        user_data = validate_telegram_webapp_data(init_data, config.TELEGRAM_BOT_TOKEN)
+        
+        if not user_data or user_data.get('id') != telegram_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        db = get_db()
+        user = db.query(User).filter(User.id == telegram_id).first()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        return jsonify({
+            'id': user.id,
+            'username': user.username,
+            'balance': user.balance,
+            'followers': user.followers,
+            'energy': user.energy,
+            'max_energy': user.max_energy,
+            'tap_power': user.tap_power,
+            'mining_per_hour': user.mining_per_hour,
+            'level': user.level,
+            'total_earned': user.total_earned,
+            'referral_count': user.referral_count,
+            'last_active': user.last_active.isoformat() if user.last_active else None
+        }), 200
+    except Exception as e:
+        logger.error(f"Error getting user data: {e}")
+        return jsonify({'error': 'Server error'}), 500
+
+@app.route('/api/user/<int:telegram_id>/sync', methods=['POST'])
+def sync_user_data(telegram_id):
+    """مزامنة بيانات اللعبة مع قاعدة البيانات (مع التوثيق والتحقق)"""
+    from flask import jsonify, request
+    try:
+        # Validate Telegram authentication
+        init_data = request.headers.get('X-Telegram-Init-Data') or request.json.get('_auth')
+        if not init_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from webapp.telegram_auth import validate_telegram_webapp_data
+        user_data = validate_telegram_webapp_data(init_data, config.TELEGRAM_BOT_TOKEN)
+        
+        if not user_data or user_data.get('id') != telegram_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        db = get_db()
+        user = db.query(User).filter(User.id == telegram_id).first()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        data = request.json
+        
+        # التحقق من صحة البيانات (Anti-cheat)
+        MAX_BALANCE = 1000000000  # 1 billion max
+        MAX_LEVEL = 100
+        MAX_ENERGY = 10000
+        
+        if 'balance' in data:
+            new_balance = min(int(data['balance']), MAX_BALANCE)
+            # Only allow increase, not arbitrary changes
+            if new_balance >= user.balance:
+                user.balance = new_balance
+        
+        if 'followers' in data:
+            user.followers = max(0, int(data['followers']))
+        
+        if 'energy' in data:
+            user.energy = max(0, min(int(data['energy']), MAX_ENERGY))
+        
+        if 'level' in data:
+            new_level = min(int(data['level']), MAX_LEVEL)
+            if new_level >= user.level:
+                user.level = new_level
+        
+        if 'total_earned' in data:
+            new_total = min(int(data['total_earned']), MAX_BALANCE)
+            if new_total >= user.total_earned:
+                user.total_earned = new_total
+        
+        user.last_active = datetime.utcnow()
+        db.commit()
+        
+        logger.info(f"✅ Synced user {telegram_id} data")
+        return jsonify({'success': True, 'message': 'Data synced'}), 200
+    except Exception as e:
+        logger.error(f"Error syncing user data: {e}")
+        return jsonify({'error': 'Server error'}), 500
+
+@app.route('/api/leaderboard', methods=['GET'])
+def get_leaderboard():
+    """جلب ترتيب أفضل اللاعبين"""
+    from flask import jsonify
+    try:
+        db = get_db()
+        top_users = db.query(User).order_by(User.total_earned.desc()).limit(100).all()
+        
+        leaderboard = []
+        for idx, user in enumerate(top_users, 1):
+            leaderboard.append({
+                'rank': idx,
+                'id': user.id,
+                'username': user.username or 'Anonymous',
+                'first_name': user.first_name or 'User',
+                'total_earned': user.total_earned,
+                'level': user.level
+            })
+        
+        return jsonify({'leaderboard': leaderboard}), 200
+    except Exception as e:
+        logger.error(f"Error getting leaderboard: {e}")
+        return jsonify({'error': str(e)}), 500
+
 def run_flask():
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 

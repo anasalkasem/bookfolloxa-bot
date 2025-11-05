@@ -528,6 +528,13 @@ function playSound(type) {
 function saveGameState() {
     gameState.lastOnline = Date.now();
     localStorage.setItem('bookfolloxa_game', JSON.stringify(gameState));
+    
+    // Sync with backend if available
+    if (typeof syncUserToBackend === 'function') {
+        syncUserToBackend(gameState).catch(err => {
+            console.warn('⚠️ Backend sync failed:', err);
+        });
+    }
 }
 
 function loadGameState() {
@@ -620,28 +627,44 @@ function updateAdCooldown() {
 }
 
 // ===== LEADERBOARD =====
-function renderLeaderboard() {
+async function renderLeaderboard() {
     const leaderboardList = document.getElementById('leaderboardList');
     
-    // Mock data (in real app, fetch from server)
-    const players = [
-        { rank: 1, name: 'Mohammed', bflx: 5000000, avatar: '👑' },
-        { rank: 2, name: 'Sara', bflx: 3500000, avatar: '💎' },
-        { rank: 3, name: 'Ahmed', bflx: 2800000, avatar: '⭐' },
-        { rank: 4, name: 'Fatima', bflx: 1900000, avatar: '🌟' },
-        { rank: 5, name: 'You', bflx: gameState.bflx, avatar: '👤' }
-    ];
+    // Try to load real leaderboard from backend
+    let players = null;
+    if (typeof loadRealLeaderboard === 'function') {
+        players = await loadRealLeaderboard();
+    }
     
-    leaderboardList.innerHTML = players.map(player => `
-        <div class="leaderboard-item ${player.name === 'You' ? 'highlight' : ''}">
-            <div class="rank">${player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : `#${player.rank}`}</div>
-            <div class="player-avatar">${player.avatar}</div>
-            <div class="player-info">
-                <div class="player-name">${player.name}</div>
-                <div class="player-earnings">${formatNumber(player.bflx)} BFLX</div>
+    // Fallback to mock data if backend fails
+    if (!players) {
+        players = [
+            { rank: 1, first_name: 'Mohammed', total_earned: 5000000 },
+            { rank: 2, first_name: 'Sara', total_earned: 3500000 },
+            { rank: 3, first_name: 'Ahmed', total_earned: 2800000 },
+            { rank: 4, first_name: 'Fatima', total_earned: 1900000 },
+            { rank: 5, first_name: 'You', total_earned: gameState.bflx }
+        ];
+    }
+    
+    const userId = getTelegramUserId && getTelegramUserId();
+    
+    leaderboardList.innerHTML = players.slice(0, 10).map(player => {
+        const isCurrentUser = userId && player.id === userId;
+        const rankBadge = player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : `#${player.rank}`;
+        const avatar = player.rank === 1 ? '👑' : player.rank === 2 ? '💎' : player.rank === 3 ? '⭐' : isCurrentUser ? '👤' : '🌟';
+        
+        return `
+            <div class="leaderboard-item ${isCurrentUser ? 'highlight' : ''}">
+                <div class="rank">${rankBadge}</div>
+                <div class="player-avatar">${avatar}</div>
+                <div class="player-info">
+                    <div class="player-name">${player.first_name || player.username || 'Anonymous'}</div>
+                    <div class="player-earnings">${formatNumber(player.total_earned)} BFLX</div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // ===== DAILY REWARDS =====
@@ -758,3 +781,46 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🎮 Bookfolloxa Game Initialized!');
+    
+    // Load from localStorage first
+    loadGameState();
+    
+    // Then init backend integration (will override with server data if available)
+    if (typeof initBackendIntegration === 'function') {
+        await initBackendIntegration(gameState);
+    }
+    
+    // Initialize UI
+    updateUI();
+    updateCharacter();
+    renderInfluencers();
+    renderTasks();
+    renderReferralPage();
+    renderMorePage();
+    
+    // Start game loops
+    setInterval(regenerateEnergy, ENERGY_REGEN_INTERVAL);
+    setInterval(updateMining, MINING_UPDATE_INTERVAL);
+    setInterval(saveGameState, SAVE_INTERVAL);
+    
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            const page = item.dataset.page;
+            showPage(page);
+        });
+    });
+    
+    // Telegram WebApp ready
+    if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+    }
+});
