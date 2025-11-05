@@ -27,7 +27,7 @@ args = "python main.py"
 outputType = "console"
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "vm"
 run = ["python", "main.py"]
 
 [nix]
@@ -53,7 +53,3 @@ externalPort = 3003
 [[ports]]
 localPort = 44065
 externalPort = 3002
-
-[[ports]]
-localPort = 46287
-externalPort = 4200
