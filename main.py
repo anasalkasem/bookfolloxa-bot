@@ -920,37 +920,92 @@ def get_leaderboard():
         logger.error(f"Error getting leaderboard: {e}")
         return jsonify({'error': str(e)}), 500
 
-def run_flask():
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+telegram_app = None
 
-async def post_init(application: Application) -> None:
-    """حذف أي webhook قديم عند البدء"""
+def get_webhook_url():
+    """Get the webhook URL for this deployment"""
+    dev_domain = os.getenv('REPLIT_DEV_DOMAIN', '')
+    if dev_domain:
+        return f'https://{dev_domain}/webhook'
+    
+    repl_slug = os.getenv('REPL_SLUG', 'bookfolloxa')
+    repl_owner = os.getenv('REPL_OWNER', 'username')
+    return f'https://{repl_slug}.{repl_owner}.repl.co/webhook'
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    """Handle Telegram webhook"""
+    global telegram_app
+    if telegram_app is None:
+        return 'Bot not initialized', 503
+    
+    try:
+        import asyncio
+        from flask import request
+        
+        update_data = request.get_json(force=True)
+        update = Update.de_json(update_data, telegram_app.bot)
+        
+        # Process update in async context
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(telegram_app.process_update(update))
+        loop.close()
+        
+        return 'OK', 200
+    except Exception as e:
+        logger.error(f"Error processing webhook: {e}")
+        return 'Error', 500
+
+
+async def setup_webhook(application: Application) -> None:
+    """Setup webhook with Telegram"""
     import asyncio
     try:
-        # حذف webhook مرتين للتأكيد
+        webhook_url = get_webhook_url()
+        logger.info(f"Setting up webhook: {webhook_url}")
+        
+        # Delete any existing webhook first
         await application.bot.delete_webhook(drop_pending_updates=True)
-        await asyncio.sleep(2)  # انتظر ثانيتين
-        await application.bot.delete_webhook(drop_pending_updates=True)
-        logger.info("✅ Webhook deleted successfully")
+        await asyncio.sleep(2)
+        
+        # Set new webhook
+        await application.bot.set_webhook(
+            url=webhook_url,
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=True
+        )
+        
+        webhook_info = await application.bot.get_webhook_info()
+        logger.info(f"✅ Webhook configured: {webhook_info.url}")
+        
     except Exception as e:
-        logger.warning(f"⚠️ Could not delete webhook: {e}")
+        logger.error(f"❌ Error setting up webhook: {e}")
+        raise
 
 def main():
+    global telegram_app
+    
     logger.info("Initializing database...")
     init_db()
     
-    logger.info("Starting Flask server...")
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
+    logger.info("Initializing bot...")
+    telegram_app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
     
-    logger.info("Starting bot...")
-    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).post_init(post_init).build()
+    telegram_app.add_handler(CommandHandler("start", start))
+    telegram_app.add_handler(CallbackQueryHandler(button_callback))
     
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(button_callback))
+    # Setup webhook
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(setup_webhook(telegram_app))
     
-    logger.info("Bot is running...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True, read_timeout=30, write_timeout=30, connect_timeout=30, pool_timeout=30)
+    logger.info("Starting Flask server on port 5000...")
+    logger.info(f"Webhook URL: {get_webhook_url()}")
+    logger.info("Bot is ready to receive updates via webhook!")
+    
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
     main()
