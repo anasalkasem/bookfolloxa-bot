@@ -5,16 +5,23 @@ const gameState = {
     energy: 1000,
     maxEnergy: 1000,
     tapPower: 5,
-    incomePerHour: 0,
+    miningPerHour: 0, // Auto-mining
     level: 1,
     influencers: [],
-    tasks: []
+    referrals: [],
+    totalReferralEarnings: 0,
+    settings: {
+        sound: true,
+        vibration: true
+    },
+    userGender: 'male', // 'male' or 'female'
+    lastOnline: Date.now()
 };
 
 // ===== CONSTANTS =====
-const ENERGY_REGEN_RATE = 1; // 1 energy per 3 seconds
+const ENERGY_REGEN_RATE = 1;
 const ENERGY_REGEN_INTERVAL = 3000;
-const INCOME_UPDATE_INTERVAL = 1000;
+const MINING_UPDATE_INTERVAL = 1000;
 const SAVE_INTERVAL = 5000;
 
 // ===== INFLUENCER DATA =====
@@ -38,10 +45,10 @@ const tasksData = {
         { id: 's2', title: 'Join Telegram', reward: 5000, url: 'https://t.me/bookfolloxa', completed: false },
         { id: 's3', title: 'Like on Instagram', reward: 3000, url: 'https://instagram.com/bookfolloxa', completed: false }
     ],
-    achievements: [
-        { id: 'a1', title: 'First Million', reward: 10000, target: 1000000, completed: false },
-        { id: 'a2', title: 'Tap Master', reward: 20000, target: 10000, progress: 0, completed: false },
-        { id: 'a3', title: 'Influencer Empire', reward: 50000, target: 10, progress: 0, completed: false }
+    referral: [
+        { id: 'r1', title: 'Invite 1 friend', reward: 10000, target: 1, progress: 0, completed: false },
+        { id: 'r2', title: 'Invite 5 friends', reward: 50000, target: 5, progress: 0, completed: false },
+        { id: 'r3', title: 'Invite 10 friends', reward: 100000, target: 10, progress: 0, completed: false }
     ]
 };
 
@@ -51,19 +58,69 @@ window.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     startGameLoops();
     loadGameState();
+    calculateOfflineEarnings();
 });
 
 function initGame() {
+    // Detect gender from Telegram
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        const user = tg.initDataUnsafe.user;
+        if (user) {
+            document.getElementById('username').textContent = user.first_name || 'Player';
+            // Note: Telegram doesn't provide gender, so we'll use male as default
+            // You can add a settings option to let users choose
+        }
+    }
+    
+    // Set character based on gender
+    updateCharacter();
     updateUI();
     console.log('🎮 Bookfolloxa Game Initialized!');
 }
 
+function updateCharacter() {
+    const character = document.getElementById('mainCharacter');
+    if (gameState.userGender === 'female') {
+        character.src = 'assets/character-female.png';
+    } else {
+        character.src = 'assets/character-male.png';
+    }
+}
+
+// ===== OFFLINE EARNINGS =====
+function calculateOfflineEarnings() {
+    const now = Date.now();
+    const timeDiff = now - gameState.lastOnline;
+    const hoursOffline = timeDiff / (1000 * 60 * 60);
+    
+    if (hoursOffline > 0.1 && gameState.miningPerHour > 0) {
+        const maxOfflineHours = 3; // Max 3 hours offline earnings
+        const actualHours = Math.min(hoursOffline, maxOfflineHours);
+        const offlineEarnings = Math.floor(gameState.miningPerHour * actualHours);
+        
+        if (offlineEarnings > 0) {
+            gameState.bflx += offlineEarnings;
+            gameState.followers += offlineEarnings;
+            showNotification(`⛏️ Welcome back! You earned ${formatNumber(offlineEarnings)} BFLX while offline!`, 'success');
+        }
+    }
+    
+    gameState.lastOnline = now;
+}
+
 // ===== EVENT LISTENERS =====
 function setupEventListeners() {
-    // Tap Button
-    const tapButton = document.getElementById('tapButton');
-    tapButton.addEventListener('click', handleTap);
-    tapButton.addEventListener('touchstart', handleTap);
+    // Character tap
+    const character = document.getElementById('mainCharacter');
+    character.addEventListener('click', handleCharacterTap);
+    character.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleCharacterTap(e);
+    });
     
     // Navigation
     const navItems = document.querySelectorAll('.nav-item');
@@ -71,25 +128,27 @@ function setupEventListeners() {
         item.addEventListener('click', () => handleNavigation(item));
     });
     
-    // Modal Close Buttons
-    const closeButtons = document.querySelectorAll('.modal-close');
-    closeButtons.forEach(btn => {
-        btn.addEventListener('click', () => closeModal(btn.closest('.modal')));
+    // Invite button
+    document.getElementById('inviteBtn').addEventListener('click', handleInvite);
+    document.getElementById('copyLinkBtn').addEventListener('click', copyReferralLink);
+    
+    // Settings toggles
+    document.getElementById('soundToggle').addEventListener('change', (e) => {
+        gameState.settings.sound = e.target.checked;
+        saveGameState();
     });
     
-    // Modal Overlays
-    const overlays = document.querySelectorAll('.modal-overlay');
-    overlays.forEach(overlay => {
-        overlay.addEventListener('click', () => closeModal(overlay.closest('.modal')));
+    document.getElementById('vibrationToggle').addEventListener('change', (e) => {
+        gameState.settings.vibration = e.target.checked;
+        saveGameState();
     });
 }
 
-// ===== TAP HANDLER =====
-function handleTap(e) {
-    e.preventDefault();
-    
+// ===== CHARACTER TAP HANDLER =====
+function handleCharacterTap(e) {
     if (gameState.energy < gameState.tapPower) {
         showNotification('⚡ Not enough energy!', 'error');
+        shakeCharacter();
         return;
     }
     
@@ -99,16 +158,39 @@ function handleTap(e) {
     gameState.energy -= gameState.tapPower;
     
     // Visual effects
+    animateCharacter();
     createFloatingNumber(gameState.tapPower, e);
     createParticles(e);
-    animateTapButton();
+    
+    // Haptic feedback
+    if (gameState.settings.vibration && window.navigator.vibrate) {
+        window.navigator.vibrate(10);
+    }
+    
+    // Sound effect (you can add actual sound file)
+    playSound('tap');
     
     // Update UI
     updateUI();
     
     // Update tasks
     updateTaskProgress('d2', 1);
-    updateTaskProgress('a2', 1);
+}
+
+function animateCharacter() {
+    const character = document.getElementById('mainCharacter');
+    character.classList.add('tap-animation');
+    setTimeout(() => {
+        character.classList.remove('tap-animation');
+    }, 300);
+}
+
+function shakeCharacter() {
+    const character = document.getElementById('mainCharacter');
+    character.classList.add('shake');
+    setTimeout(() => {
+        character.classList.remove('shake');
+    }, 500);
 }
 
 // ===== VISUAL EFFECTS =====
@@ -120,11 +202,11 @@ function createFloatingNumber(value, event) {
     
     // Position
     const rect = event.target.getBoundingClientRect();
-    const x = (event.clientX || event.touches[0].clientX) - rect.left;
-    const y = (event.clientY || event.touches[0].clientY) - rect.top;
+    const x = (event.clientX || (event.touches && event.touches[0].clientX) || rect.width / 2);
+    const y = (event.clientY || (event.touches && event.touches[0].clientY) || rect.height / 2);
     
-    floatNum.style.left = `${x}px`;
-    floatNum.style.top = `${y}px`;
+    floatNum.style.left = `${x - rect.left}px`;
+    floatNum.style.top = `${y - rect.top}px`;
     floatNum.style.background = 'linear-gradient(135deg, #ff6b9d, #7c3aed)';
     floatNum.style.webkitBackgroundClip = 'text';
     floatNum.style.webkitTextFillColor = 'transparent';
@@ -139,18 +221,18 @@ function createParticles(event) {
     const particles = ['❤️', '👍', '📱', '📸', '🎵', '▶️', '💬', '⭐'];
     const container = document.getElementById('floatingNumbers');
     
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
         const particle = document.createElement('div');
         particle.className = 'float-number';
         particle.textContent = particles[Math.floor(Math.random() * particles.length)];
-        particle.style.fontSize = '30px';
+        particle.style.fontSize = '28px';
         
         const rect = event.target.getBoundingClientRect();
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
         
-        const angle = (Math.PI * 2 * i) / 5;
-        const distance = 50;
+        const angle = (Math.PI * 2 * i) / 6;
+        const distance = 60;
         const x = centerX + Math.cos(angle) * distance;
         const y = centerY + Math.sin(angle) * distance;
         
@@ -163,14 +245,6 @@ function createParticles(event) {
     }
 }
 
-function animateTapButton() {
-    const button = document.getElementById('tapButton');
-    button.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-        button.style.transform = 'scale(1)';
-    }, 100);
-}
-
 // ===== NAVIGATION =====
 function handleNavigation(navItem) {
     const page = navItem.dataset.page;
@@ -181,29 +255,29 @@ function handleNavigation(navItem) {
     });
     navItem.classList.add('active');
     
-    // Handle page
-    switch(page) {
-        case 'home':
-            closeAllModals();
-            break;
-        case 'influencers':
-            openInfluencersModal();
-            break;
-        case 'campaigns':
-            showNotification('📋 Campaigns coming soon!', 'info');
-            break;
-        case 'tasks':
-            openTasksModal();
-            break;
-        case 'more':
-            showNotification('⋯ More features coming soon!', 'info');
-            break;
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+    });
+    
+    // Show selected page
+    const targetPage = document.getElementById(`${page}Page`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        
+        // Load page content
+        if (page === 'influencers') {
+            renderInfluencers();
+        } else if (page === 'tasks') {
+            renderTasks('daily');
+        } else if (page === 'referral') {
+            renderReferralPage();
+        }
     }
 }
 
-// ===== INFLUENCERS MODAL =====
-function openInfluencersModal() {
-    const modal = document.getElementById('influencersModal');
+// ===== INFLUENCERS =====
+function renderInfluencers() {
     const list = document.getElementById('influencerList');
     
     list.innerHTML = influencerTypes.map(inf => `
@@ -211,16 +285,14 @@ function openInfluencersModal() {
             <div class="influencer-icon">${inf.icon}</div>
             <div class="influencer-info">
                 <div class="influencer-name">${inf.name}</div>
-                <div class="influencer-income">💰 ${formatNumber(inf.income)}/hour</div>
+                <div class="influencer-income">⛏️ ${formatNumber(inf.income)}/hour</div>
             </div>
             <button class="influencer-hire-btn" onclick="hireInfluencer(${inf.id})" 
                     ${gameState.bflx >= inf.cost && gameState.level >= inf.level ? '' : 'disabled'}>
-                <span class="cost">💎 ${formatNumber(inf.cost)}</span>
+                💎 ${formatNumber(inf.cost)}
             </button>
         </div>
     `).join('');
-    
-    modal.classList.add('active');
 }
 
 function hireInfluencer(id) {
@@ -238,39 +310,34 @@ function hireInfluencer(id) {
     
     gameState.bflx -= influencer.cost;
     gameState.influencers.push({ ...influencer, hiredAt: Date.now() });
-    gameState.incomePerHour += influencer.income;
+    gameState.miningPerHour += influencer.income;
     
-    showNotification(`✅ Hired ${influencer.name}!`, 'success');
+    showNotification(`✅ Hired ${influencer.name}! +${formatNumber(influencer.income)}/hour`, 'success');
     updateUI();
-    openInfluencersModal(); // Refresh
+    renderInfluencers();
     
     updateTaskProgress('d3', 1);
-    updateTaskProgress('a3', 1);
 }
 
-// ===== TASKS MODAL =====
-function openTasksModal() {
-    const modal = document.getElementById('tasksModal');
+// ===== TASKS =====
+function renderTasks(category) {
     const list = document.getElementById('tasksList');
-    
-    // Tabs
-    const tabs = modal.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            renderTasks(tab.dataset.tab, list);
-        });
-    });
-    
-    renderTasks('daily', list);
-    modal.classList.add('active');
-}
-
-function renderTasks(category, container) {
     const tasks = tasksData[category];
     
-    container.innerHTML = tasks.map(task => `
+    // Update tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === category) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Setup tab listeners
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.onclick = () => renderTasks(btn.dataset.tab);
+    });
+    
+    list.innerHTML = tasks.map(task => `
         <div class="task-card ${task.completed ? 'completed' : ''}">
             <div class="task-info">
                 <div class="task-title">${task.title}</div>
@@ -306,15 +373,59 @@ function completeTask(task) {
     updateUI();
 }
 
-// ===== MODALS =====
-function closeModal(modal) {
-    modal.classList.remove('active');
+// ===== REFERRAL SYSTEM =====
+function renderReferralPage() {
+    const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'demo123';
+    const botUsername = 'Bookfolloxa_bot'; // Replace with your actual bot username
+    const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
+    
+    document.getElementById('referralLink').value = referralLink;
+    document.getElementById('totalReferrals').textContent = gameState.referrals.length;
+    document.getElementById('referralEarnings').textContent = formatNumber(gameState.totalReferralEarnings);
+    
+    // Update referral tasks
+    tasksData.referral.forEach(task => {
+        task.progress = gameState.referrals.length;
+        if (task.progress >= task.target && !task.completed) {
+            completeTask(task);
+        }
+    });
+    
+    // Render referrals list
+    const referralsList = document.getElementById('referralsList');
+    if (gameState.referrals.length === 0) {
+        referralsList.innerHTML = '<p style="text-align: center; color: #a0aec0;">No referrals yet. Start inviting!</p>';
+    } else {
+        referralsList.innerHTML = gameState.referrals.map(ref => `
+            <div class="task-card">
+                <div class="task-info">
+                    <div class="task-title">${ref.name}</div>
+                    <div class="task-progress">Earned: ${formatNumber(ref.earnings)}</div>
+                </div>
+                <div class="task-reward">💰</div>
+            </div>
+        `).join('');
+    }
 }
 
-function closeAllModals() {
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.classList.remove('active');
-    });
+function handleInvite() {
+    const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'demo123';
+    const botUsername = 'Bookfolloxa_bot';
+    const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
+    const message = `🎁 Join Bookfolloxa and start earning!\n\n💰 Build your influencer empire\n⛏️ Auto-mining rewards\n🎮 Fun games & challenges\n\n${referralLink}`;
+    
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`);
+    } else {
+        copyReferralLink();
+    }
+}
+
+function copyReferralLink() {
+    const input = document.getElementById('referralLink');
+    input.select();
+    document.execCommand('copy');
+    showNotification('📋 Link copied!', 'success');
 }
 
 // ===== GAME LOOPS =====
@@ -327,15 +438,15 @@ function startGameLoops() {
         }
     }, ENERGY_REGEN_INTERVAL);
     
-    // Income
+    // Auto-mining
     setInterval(() => {
-        if (gameState.incomePerHour > 0) {
-            const incomePerSecond = gameState.incomePerHour / 3600;
-            gameState.bflx += incomePerSecond;
-            gameState.followers += incomePerSecond;
+        if (gameState.miningPerHour > 0) {
+            const miningPerSecond = gameState.miningPerHour / 3600;
+            gameState.bflx += miningPerSecond;
+            gameState.followers += miningPerSecond;
             updateUI();
         }
-    }, INCOME_UPDATE_INTERVAL);
+    }, MINING_UPDATE_INTERVAL);
     
     // Auto-save
     setInterval(() => {
@@ -348,28 +459,19 @@ function updateUI() {
     // Header stats
     document.getElementById('bflxBalance').textContent = formatNumber(gameState.bflx);
     document.getElementById('followersCount').textContent = formatNumber(gameState.followers);
+    document.getElementById('levelBadge').textContent = gameState.level;
     
     // Tap power
     document.getElementById('tapPower').textContent = gameState.tapPower;
     
-    // Income
-    document.getElementById('incomePerHour').textContent = formatNumber(gameState.incomePerHour);
+    // Mining income
+    document.getElementById('incomePerHour').textContent = formatNumber(gameState.miningPerHour);
     
     // Energy
     const energyPercent = (gameState.energy / gameState.maxEnergy) * 100;
     document.getElementById('energyFill').style.width = `${energyPercent}%`;
     document.getElementById('currentEnergy').textContent = Math.floor(gameState.energy);
     document.getElementById('maxEnergy').textContent = gameState.maxEnergy;
-    
-    // Check achievements
-    checkAchievements();
-}
-
-function checkAchievements() {
-    const millionTask = tasksData.achievements.find(t => t.id === 'a1');
-    if (millionTask && !millionTask.completed && gameState.bflx >= millionTask.target) {
-        completeTask(millionTask);
-    }
 }
 
 // ===== UTILITIES =====
@@ -381,7 +483,6 @@ function formatNumber(num) {
 }
 
 function showNotification(message, type = 'info') {
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.textContent = message;
@@ -400,6 +501,8 @@ function showNotification(message, type = 'info') {
         z-index: 10000;
         animation: slideDown 0.3s ease;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        max-width: 80%;
+        text-align: center;
     `;
     
     document.body.appendChild(notification);
@@ -410,8 +513,17 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+function playSound(type) {
+    if (!gameState.settings.sound) return;
+    
+    // You can add actual sound files here
+    // const audio = new Audio(`sounds/${type}.mp3`);
+    // audio.play();
+}
+
 // ===== SAVE/LOAD =====
 function saveGameState() {
+    gameState.lastOnline = Date.now();
     localStorage.setItem('bookfolloxa_game', JSON.stringify(gameState));
 }
 
@@ -419,25 +531,13 @@ function loadGameState() {
     const saved = localStorage.getItem('bookfolloxa_game');
     if (saved) {
         Object.assign(gameState, JSON.parse(saved));
+        updateCharacter();
         updateUI();
         console.log('💾 Game loaded!');
     }
 }
 
-// ===== TELEGRAM WEB APP =====
-if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-    
-    // Get user data
-    const user = tg.initDataUnsafe.user;
-    if (user) {
-        document.querySelector('.username').textContent = user.first_name || 'Player';
-    }
-}
-
-// ===== CSS ANIMATIONS =====
+// ===== ANIMATIONS CSS =====
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideDown {
@@ -460,140 +560,6 @@ style.textContent = `
             opacity: 0;
             transform: translateX(-50%) translateY(-20px);
         }
-    }
-    
-    .influencer-card {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        padding: 16px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 12px;
-        transition: all 0.3s ease;
-    }
-    
-    .influencer-card:hover {
-        background: rgba(255, 255, 255, 0.08);
-        transform: translateY(-2px);
-    }
-    
-    .influencer-card.locked {
-        opacity: 0.5;
-    }
-    
-    .influencer-icon {
-        font-size: 48px;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #00d9ff, #7c3aed);
-        border-radius: 12px;
-    }
-    
-    .influencer-info {
-        flex: 1;
-    }
-    
-    .influencer-name {
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 4px;
-    }
-    
-    .influencer-income {
-        font-size: 14px;
-        color: #a0aec0;
-    }
-    
-    .influencer-hire-btn {
-        background: linear-gradient(135deg, #00d9ff, #7c3aed);
-        border: none;
-        padding: 12px 24px;
-        border-radius: 12px;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .influencer-hire-btn:hover:not(:disabled) {
-        transform: scale(1.05);
-        box-shadow: 0 10px 20px rgba(0, 217, 255, 0.3);
-    }
-    
-    .influencer-hire-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    
-    .task-card {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        padding: 16px;
-        border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 12px;
-    }
-    
-    .task-card.completed {
-        opacity: 0.6;
-    }
-    
-    .task-title {
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 4px;
-    }
-    
-    .task-progress {
-        font-size: 14px;
-        color: #a0aec0;
-    }
-    
-    .task-reward {
-        font-size: 18px;
-        font-weight: bold;
-        background: linear-gradient(135deg, #00d9ff, #7c3aed);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
-    .tasks-tabs {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-    }
-    
-    .tab-btn {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #a0aec0;
-        padding: 12px;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .tab-btn.active {
-        background: linear-gradient(135deg, #00d9ff, #7c3aed);
-        color: white;
-        border-color: transparent;
-    }
-    
-    .influencer-grid {
-        display: flex;
-        flex-direction: column;
     }
 `;
 document.head.appendChild(style);
