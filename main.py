@@ -793,6 +793,14 @@ def webapp_files(filename):
 def run_flask():
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
+async def post_init(application: Application) -> None:
+    """حذف أي webhook قديم عند البدء"""
+    try:
+        await application.bot.delete_webhook(drop_pending_updates=True)
+        logger.info("✅ Webhook deleted successfully")
+    except Exception as e:
+        logger.warning(f"⚠️ Could not delete webhook: {e}")
+
 def main():
     logger.info("Initializing database...")
     init_db()
@@ -802,13 +810,13 @@ def main():
     flask_thread.start()
     
     logger.info("Starting bot...")
-    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
+    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).post_init(post_init).build()
     
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CallbackQueryHandler(button_callback))
     
     logger.info("Bot is running...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
 if __name__ == '__main__':
     main()
