@@ -51,29 +51,10 @@ def get_main_menu_keyboard():
     repl_owner = os.getenv('REPL_OWNER', 'username')
     webapp_url = f'https://{repl_slug}.{repl_owner}.repl.co/webapp/'
     
+    # قائمة مبسطة - فقط زر اللعبة
     keyboard = [
         [
-            InlineKeyboardButton("🎮 العب Influencer Empire 🎮", web_app=WebAppInfo(url=webapp_url))
-        ],
-        [
-            InlineKeyboardButton("⛏ تعدين", callback_data="mine"),
-            InlineKeyboardButton("💰 جمع التلقائي", callback_data="claim_auto")
-        ],
-        [
-            InlineKeyboardButton("🎡 دولاب الحظ", callback_data="daily_spin"),
-            InlineKeyboardButton("📦 صناديقي", callback_data="my_boxes")
-        ],
-        [
-            InlineKeyboardButton("🎮 الألعاب", callback_data="games"),
-            InlineKeyboardButton("⬆️ ترقيات", callback_data="upgrades")
-        ],
-        [
-            InlineKeyboardButton("📊 إحصائياتي", callback_data="stats"),
-            InlineKeyboardButton("👥 دعوة أصدقاء", callback_data="referrals")
-        ],
-        [
-            InlineKeyboardButton("🏆 المتصدرون", callback_data="leaderboard"),
-            InlineKeyboardButton("🎯 التحديات", callback_data="challenges")
+            InlineKeyboardButton("🎮 العب الآن - Play Now 🎮", web_app=WebAppInfo(url=webapp_url))
         ]
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -91,30 +72,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_or_create_user(update.effective_user, db, referrer_id)
     
     welcome_text = f"""
-╔═══════════════════════════╗
-║   🎮 BOOKFOLLOXA 🎮   ║
-╚═══════════════════════════╝
+🎮 **Bookfolloxa - Influencer Empire** 🎮
 
-        ⚡️ مرحباً {user.first_name}! ⚡️
-        
-╭━━━━━━━━━ الملف الشخصي ━━━━━━━━━╮
-│                                                      │
-│  💰  الرصيد: {user.balance:,} BFLX          │
-│  ⚡  الطاقة: {user.energy}/{user.max_energy}                 │
-│  🎚  المستوى: {user.level}                              │
-│  👥  الأصدقاء: {user.referral_count}                           │
-│                                                      │
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+⚡️ مرحباً {user.first_name}! ⚡️
 
-🎯 ابدأ رحلتك في عالم التعدين!
-⛏ انقر للتعدين وجمع الثروة
-🎡 جرّب حظك مع العجلة اليومية
-📦 افتح الصناديق السرية
-⬆️ طوّر قدراتك وكن الأفضل!
+🎯 **ابني إمبراطوريتك على السوشيال ميديا!**
 
-━━━━━━━━━━━━━━━━━━━━━━━━━
-   🚀 استعد للمغامرة! 🚀
-━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 انقر على الزر بالأسفل لبدء اللعبة
+💰 اجمع المتابعين و BFLX
+👥 وظّف المؤثرين وابنِ فريقك
+🏆 كن الأول في الترتيب العالمي!
+
+━━━━━━━━━━━━━━━━━━━━━━
+   ✨ اضغط العب الآن! ✨
+━━━━━━━━━━━━━━━━━━━━━━
 """
     
     await update.message.reply_text(
