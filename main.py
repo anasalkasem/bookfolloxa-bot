@@ -15,6 +15,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+logging.getLogger('httpx').setLevel(logging.WARNING)
+
 def get_or_create_user(telegram_user, db: Session, referrer_id=None) -> User:
     user = db.query(User).filter(User.id == telegram_user.id).first()
     
