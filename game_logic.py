@@ -4,6 +4,31 @@ from sqlalchemy.orm import Session
 from models import User, MysteryBox, UserChallenge, UserAchievement, SpeedChallenge
 import config
 
+def distribute_referral_rewards(user: User, earned_amount: int, db: Session):
+    """توزيع مكافآت الإحالة على 3 مستويات"""
+    percentages = [
+        config.REFERRAL_LEVEL_1_PERCENTAGE,
+        config.REFERRAL_LEVEL_2_PERCENTAGE,
+        config.REFERRAL_LEVEL_3_PERCENTAGE
+    ]
+    
+    current_user = user
+    for level, percentage in enumerate(percentages, 1):
+        if not current_user.referrer_id:
+            break
+        
+        referrer = db.query(User).filter(User.id == current_user.referrer_id).first()
+        if not referrer:
+            break
+        
+        reward = int(earned_amount * percentage)
+        if reward > 0:
+            referrer.balance += reward
+            referrer.referral_earnings += reward
+            referrer.total_earned += reward
+        
+        current_user = referrer
+
 def calculate_energy_regen(user: User) -> int:
     now = datetime.utcnow()
     time_diff = (now - user.last_energy_update).total_seconds()
@@ -37,6 +62,8 @@ def perform_tap(user: User, db: Session) -> dict:
     user.total_taps += 1
     user.total_earned += tap_reward
     user.xp += 1
+    
+    distribute_referral_rewards(user, tap_reward, db)
     
     check_level_up(user, db)
     update_challenge_progress(user, 'tap_1000', 1, db)
@@ -74,6 +101,8 @@ def claim_auto_mining(user: User, db: Session) -> dict:
     user.xp += int(reward / 10)
     user.last_auto_claim = datetime.utcnow()
     
+    distribute_referral_rewards(user, reward, db)
+    
     check_level_up(user, db)
     update_challenge_progress(user, 'claim_auto', 1, db)
     update_challenge_progress(user, 'earn_5000', reward, db)
@@ -110,6 +139,7 @@ def spin_daily_wheel(user: User, db: Session) -> dict:
         amount = reward_data['amount']
         user.balance += amount
         user.total_earned += amount
+        distribute_referral_rewards(user, amount, db)
         result['amount'] = amount
         result['message'] = f'🎉 مبروك! حصلت على {amount} BFLX!'
         
@@ -148,6 +178,8 @@ def open_mystery_box(box: MysteryBox, user: User, db: Session) -> dict:
     user.balance += reward
     user.total_earned += reward
     user.xp += int(reward / 100)
+    
+    distribute_referral_rewards(user, reward, db)
     
     check_level_up(user, db)
     
@@ -238,8 +270,10 @@ def update_challenge_progress(user: User, challenge_id: str, progress: int, db: 
         challenge_config = next((c for c in config.DAILY_CHALLENGES if c['id'] == challenge_id), None)
         if challenge_config and challenge.progress >= challenge_config['target']:
             challenge.completed = True
-            user.balance += challenge_config['reward']
-            user.total_earned += challenge_config['reward']
+            reward = challenge_config['reward']
+            user.balance += reward
+            user.total_earned += reward
+            distribute_referral_rewards(user, reward, db)
 
 def start_speed_challenge(user: User, db: Session) -> dict:
     return {
@@ -254,6 +288,8 @@ def complete_speed_challenge(user: User, score: int, db: Session) -> dict:
     user.balance += reward
     user.total_earned += reward
     user.xp += int(score / 10)
+    
+    distribute_referral_rewards(user, reward, db)
     
     speed_challenge = SpeedChallenge(
         user_id=user.id,
