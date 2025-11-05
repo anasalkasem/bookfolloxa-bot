@@ -45,11 +45,17 @@ def get_or_create_user(telegram_user, db: Session, referrer_id=None) -> User:
     return user
 
 def get_main_menu_keyboard():
-    # Get the webapp URL from environment
-    # Format: https://{REPL_SLUG}.{REPL_OWNER}.repl.co/webapp/
-    repl_slug = os.getenv('REPL_SLUG', 'bookfolloxa')
-    repl_owner = os.getenv('REPL_OWNER', 'username')
-    webapp_url = f'https://{repl_slug}.{repl_owner}.repl.co/webapp/'
+    # Get the webapp URL from environment - use REPLIT_DEV_DOMAIN
+    dev_domain = os.getenv('REPLIT_DEV_DOMAIN', '')
+    if dev_domain:
+        webapp_url = f'https://{dev_domain}/webapp/'
+    else:
+        # Fallback to old format
+        repl_slug = os.getenv('REPL_SLUG', 'bookfolloxa')
+        repl_owner = os.getenv('REPL_OWNER', 'username')
+        webapp_url = f'https://{repl_slug}.{repl_owner}.repl.co/webapp/'
+    
+    logger.info(f"Using webapp URL: {webapp_url}")
     
     # قائمة مبسطة - فقط زر اللعبة
     keyboard = [
