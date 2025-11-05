@@ -795,7 +795,11 @@ def run_flask():
 
 async def post_init(application: Application) -> None:
     """حذف أي webhook قديم عند البدء"""
+    import asyncio
     try:
+        # حذف webhook مرتين للتأكيد
+        await application.bot.delete_webhook(drop_pending_updates=True)
+        await asyncio.sleep(2)  # انتظر ثانيتين
         await application.bot.delete_webhook(drop_pending_updates=True)
         logger.info("✅ Webhook deleted successfully")
     except Exception as e:
@@ -816,7 +820,7 @@ def main():
     application.add_handler(CallbackQueryHandler(button_callback))
     
     logger.info("Bot is running...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
+    application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True, read_timeout=30, write_timeout=30, connect_timeout=30, pool_timeout=30)
 
 if __name__ == '__main__':
     main()
