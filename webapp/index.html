@@ -1,298 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0a0e27">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bookfolloxa - Influencer Empire</title>
-    <link rel="stylesheet" href="/webapp/style.css">
+    <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 9999;">
-        <div style="text-align: center; color: white;">
-            <h1 style="font-size: 32px; margin-bottom: 20px;">🎮 Bookfolloxa</h1>
-            <div style="font-size: 18px;">Loading...</div>
-        </div>
-    </div>
-    
-    <!-- Header -->
-    <div class="header">
-        <div class="user-info">
-            <div class="avatar">
-                <div class="avatar-emoji">👤</div>
-            </div>
-            <div class="user-stats">
-                <div class="username" id="username">Player</div>
-                <div class="level">Level <span id="userLevel">1</span></div>
-            </div>
-        </div>
-        
-        <div class="top-stats">
-            <div class="stat-item">
-                <span class="stat-icon">💰</span>
-                <span id="bflxBalance">1,000</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-icon">👥</span>
-                <span id="followersCount">0</span>
-            </div>
-        </div>
-        
-        <button class="menu-btn" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
     </div>
 
-    <!-- Main Game Area -->
-    <div class="game-container">
-        <!-- Character -->
-        <div class="character-container">
-            <div class="character" id="character" ontouchstart="tap(event)" onclick="tap(event)">
-                <div class="tap-button">
-                    <div class="tap-icon">❤️</div>
+    <!-- Floating Social Icons Background -->
+    <div class="social-bg-icons">
+        <div class="float-icon" style="left: 10%; top: 15%; animation-delay: 0s;">🐦</div>
+        <div class="float-icon" style="left: 85%; top: 25%; animation-delay: 1s;">📷</div>
+        <div class="float-icon" style="left: 15%; top: 70%; animation-delay: 2s;">🎵</div>
+        <div class="float-icon" style="left: 80%; top: 65%; animation-delay: 3s;">▶️</div>
+        <div class="float-icon" style="left: 50%; top: 10%; animation-delay: 4s;">👥</div>
+        <div class="float-icon" style="left: 25%; top: 85%; animation-delay: 5s;">💬</div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="avatar-container">
+                <div class="avatar">
+                    <div class="avatar-inner">👤</div>
                 </div>
-                <div class="tap-effect" id="tapEffect"></div>
+                <div class="level-badge">1</div>
             </div>
-            
-            <!-- Floating Numbers -->
-            <div class="floating-numbers" id="floatingNumbers"></div>
+            <div class="user-info">
+                <div class="username">Player</div>
+                <div class="user-level">Beginner</div>
+            </div>
         </div>
         
+        <div class="header-stats">
+            <div class="stat-card">
+                <div class="stat-icon">💎</div>
+                <div class="stat-value" id="bflxBalance">1.0K</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="followersCount">0</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="game-area">
+        <!-- Tap Button Container -->
+        <div class="tap-container">
+            <!-- Floating Numbers -->
+            <div class="floating-numbers" id="floatingNumbers"></div>
+            
+            <!-- Main Tap Button -->
+            <div class="tap-button-wrapper" id="tapButton">
+                <div class="tap-button">
+                    <div class="tap-glow"></div>
+                    <div class="tap-inner">
+                        <div class="tap-icon">❤️</div>
+                    </div>
+                    <div class="tap-ring ring-1"></div>
+                    <div class="tap-ring ring-2"></div>
+                    <div class="tap-ring ring-3"></div>
+                </div>
+            </div>
+            
+            <!-- Tap Power Indicator -->
+            <div class="tap-power-indicator">
+                <span class="power-label">Per Tap</span>
+                <span class="power-value">+<span id="tapPower">5</span></span>
+            </div>
+        </div>
+
         <!-- Income Display -->
-        <div class="income-display">
+        <div class="income-card">
             <div class="income-label">Income per hour</div>
             <div class="income-value">
                 <span class="income-icon">💰</span>
                 <span id="incomePerHour">0</span>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Energy Bar -->
-    <div class="energy-container">
-        <div class="energy-icon">⚡</div>
-        <div class="energy-bar">
-            <div class="energy-fill" id="energyFill"></div>
-        </div>
-        <div class="energy-text">
-            <span id="currentEnergy">1000</span> / <span id="maxEnergy">1000</span>
-        </div>
-        <div class="per-tap">
-            +<span id="tapPower">5</span> per tap
+    <div class="energy-section">
+        <div class="energy-container">
+            <div class="energy-icon">⚡</div>
+            <div class="energy-bar-wrapper">
+                <div class="energy-bar">
+                    <div class="energy-fill" id="energyFill"></div>
+                    <div class="energy-shine"></div>
+                </div>
+                <div class="energy-text">
+                    <span id="currentEnergy">1000</span> / <span id="maxEnergy">1000</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <button class="nav-btn active" onclick="showScreen('home')">
-            <div class="nav-icon">🏠</div>
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-page="home">
+            <div class="nav-icon-wrapper">
+                <div class="nav-icon">🏠</div>
+                <div class="nav-glow"></div>
+            </div>
             <div class="nav-label">HOME</div>
         </button>
-        <button class="nav-btn" onclick="showScreen('influencers')">
-            <div class="nav-icon">👥</div>
+        <button class="nav-item" data-page="influencers">
+            <div class="nav-icon-wrapper">
+                <div class="nav-icon">👥</div>
+                <div class="nav-glow"></div>
+            </div>
             <div class="nav-label">INFLUENCERS</div>
         </button>
-        <button class="nav-btn" onclick="showScreen('campaigns')">
-            <div class="nav-icon">📋</div>
+        <button class="nav-item" data-page="campaigns">
+            <div class="nav-icon-wrapper">
+                <div class="nav-icon">📋</div>
+                <div class="nav-glow"></div>
+            </div>
             <div class="nav-label">CAMPAIGNS</div>
         </button>
-        <button class="nav-btn" onclick="showScreen('tasks')">
-            <div class="nav-icon">✅</div>
+        <button class="nav-item" data-page="tasks">
+            <div class="nav-icon-wrapper">
+                <div class="nav-icon">✅</div>
+                <div class="nav-glow"></div>
+            </div>
             <div class="nav-label">TASKS</div>
         </button>
-        <button class="nav-btn" onclick="showScreen('more')">
-            <div class="nav-icon">⋯</div>
+        <button class="nav-item" data-page="more">
+            <div class="nav-icon-wrapper">
+                <div class="nav-icon">⋯</div>
+                <div class="nav-glow"></div>
+            </div>
             <div class="nav-label">MORE</div>
         </button>
-    </div>
+    </nav>
 
-    <!-- Side Menu -->
-    <div class="side-menu" id="sideMenu">
-        <div class="menu-header">
-            <h3>Menu</h3>
-            <button class="close-btn" onclick="toggleMenu()">✕</button>
-        </div>
-        <div class="menu-items">
-            <button class="menu-item" onclick="showScreen('upgrade')">
-                <span class="menu-icon">⬆️</span>
-                <span>Upgrade</span>
-            </button>
-            <button class="menu-item" onclick="showScreen('leaderboard')">
-                <span class="menu-icon">🏆</span>
-                <span>Leaderboard</span>
-            </button>
-            <button class="menu-item" onclick="showScreen('invite')">
-                <span class="menu-icon">👥</span>
-                <span>Invite Friends</span>
-            </button>
-            <button class="menu-item" onclick="showScreen('wallet')">
-                <span class="menu-icon">💰</span>
-                <span>Wallet</span>
-            </button>
-            <button class="menu-item" onclick="showScreen('daily-rewards')">
-                <span class="menu-icon">🎁</span>
-                <span>Daily Rewards</span>
-            </button>
-            <button class="menu-item" onclick="showScreen('settings')">
-                <span class="menu-icon">⚙️</span>
-                <span>Settings</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Overlay for menu -->
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-
-    <!-- Modal Screens -->
+    <!-- Modals -->
     <div class="modal" id="influencersModal">
+        <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2>👥 Hire Influencer</h2>
-                <button class="close-modal" onclick="closeModal('influencersModal')">✕</button>
+                <h2>👥 Hire Influencers</h2>
+                <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="influencer-list" id="influencerList">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="campaignsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📋 Campaigns</h2>
-                <button class="close-modal" onclick="closeModal('campaignsModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="campaigns-list" id="campaignsList">
-                    <!-- Will be populated by JS -->
-                </div>
+                <div class="influencer-grid" id="influencerList"></div>
             </div>
         </div>
     </div>
 
     <div class="modal" id="tasksModal">
+        <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2>✅ Tasks</h2>
-                <button class="close-modal" onclick="closeModal('tasksModal')">✕</button>
+                <h2>✅ Tasks & Rewards</h2>
+                <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="tasks-tabs">
-                    <button class="tab-btn active" onclick="showTasks('daily')">Daily</button>
-                    <button class="tab-btn" onclick="showTasks('social')">Social</button>
-                    <button class="tab-btn" onclick="showTasks('achievements')">Achievements</button>
+                    <button class="tab-btn active" data-tab="daily">Daily</button>
+                    <button class="tab-btn" data-tab="social">Social</button>
+                    <button class="tab-btn" data-tab="achievements">Achievements</button>
                 </div>
-                <div class="tasks-list" id="tasksList">
-                    <!-- Will be populated by JS -->
-                </div>
+                <div class="tasks-list" id="tasksList"></div>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="leaderboardModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🏆 Leaderboard</h2>
-                <button class="close-modal" onclick="closeModal('leaderboardModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="leaderboardList">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="moreModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⋯ More</h2>
-                <button class="close-modal" onclick="closeModal('moreModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="moreList">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="walletModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>💰 Wallet</h2>
-                <button class="close-modal" onclick="closeModal('walletModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="walletContent">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Settings</h2>
-                <button class="close-modal" onclick="closeModal('settingsModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="settingsContent">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="upgradeModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⬆️ Upgrade</h2>
-                <button class="close-modal" onclick="closeModal('upgradeModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="upgradeContent">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="inviteModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>👥 Invite Friends</h2>
-                <button class="close-modal" onclick="closeModal('inviteModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="inviteContent">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="dailyRewardsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🎁 Daily Rewards</h2>
-                <button class="close-modal" onclick="closeModal('dailyRewardsModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div id="dailyRewardsContent">
-                    <!-- Will be populated by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="/webapp/game.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
