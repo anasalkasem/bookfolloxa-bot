@@ -52,13 +52,14 @@ function initGame() {
         createFloatingBackground();
         
         // Hide loading screen
-        setTimeout(() => {
-            const loadingScreen = document.getElementById('loadingScreen');
-            if (loadingScreen) {
-                loadingScreen.style.display = 'none';
-            }
-            console.log('Game initialized successfully!');
-        }, 500);
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            console.log('Hiding loading screen...');
+            loadingScreen.style.display = 'none';
+        } else {
+            console.error('Loading screen element not found!');
+        }
+        console.log('Game initialized successfully!');
     } catch (error) {
         console.error('Error initializing game:', error);
         alert('Error loading game. Please refresh.');
