@@ -26,21 +26,43 @@ const socialPlatforms = {
 };
 
 // Initialize Telegram WebApp
-let tg = window.Telegram?.WebApp;
-if (tg) {
-    tg.ready();
-    tg.expand();
-    // Set theme
-    document.body.style.backgroundColor = tg.themeParams.bg_color || '#0a0e27';
+let tg = null;
+function initTelegram() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        // Set theme
+        document.body.style.backgroundColor = tg.themeParams.bg_color || '#0a0e27';
+        console.log('Telegram WebApp initialized');
+    } else {
+        console.log('Telegram WebApp not available, running in standalone mode');
+    }
 }
 
 // Initialize Game
 function initGame() {
-    loadGameState();
-    updateUI();
-    startEnergyRegen();
-    startPassiveIncome();
-    createFloatingBackground();
+    console.log('Starting game initialization...');
+    try {
+        initTelegram();
+        loadGameState();
+        updateUI();
+        startEnergyRegen();
+        startPassiveIncome();
+        createFloatingBackground();
+        
+        // Hide loading screen
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+            console.log('Game initialized successfully!');
+        }, 500);
+    } catch (error) {
+        console.error('Error initializing game:', error);
+        alert('Error loading game. Please refresh.');
+    }
 }
 
 // Load Game State (from localStorage or backend)
