@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from models import User, MysteryBox, get_db, init_db
 import game_logic
 import config
+from flask import Flask
+import threading
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -698,9 +700,26 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data.startswith('upgrade_'):
         await upgrade_feature_callback(update, context)
 
+app = Flask(__name__)
+
+@app.route('/')
+def health_check():
+    return 'OK', 200
+
+@app.route('/health')
+def health():
+    return {'status': 'healthy', 'bot': 'running'}, 200
+
+def run_flask():
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+
 def main():
     logger.info("Initializing database...")
     init_db()
+    
+    logger.info("Starting Flask server...")
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
     
     logger.info("Starting bot...")
     application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
