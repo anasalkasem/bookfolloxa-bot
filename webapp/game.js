@@ -179,11 +179,11 @@ function createFloatingNumber(event, value, isCritical) {
     const icon = socialIcons[Math.floor(Math.random() * socialIcons.length)];
     
     if (isCritical) {
-        floatNum.innerHTML = `${icon} +${formatNumber(value)} 🔥`;
+        floatNum.textContent = `${icon} +${formatNumber(value)} 🔥`;
         floatNum.style.color = '#ff6b9d';
         floatNum.style.fontSize = '42px';
     } else {
-        floatNum.innerHTML = `${icon} +${value}`;
+        floatNum.textContent = `${icon} +${value}`;
         floatNum.style.color = '#00d9ff';
     }
     
