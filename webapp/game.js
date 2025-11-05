@@ -446,16 +446,37 @@ function showTasks(type) {
     tasks.forEach(task => {
         const card = document.createElement('div');
         card.className = 'task-card';
-        card.innerHTML = `
-            <div class="task-info">
-                <h3>${task.icon} ${task.name}</h3>
-                <p>Complete this task to earn rewards</p>
-            </div>
-            <div class="task-reward">
-                <div class="reward-value">+${formatNumber(task.reward)}</div>
-                <button class="task-btn" onclick="completeTask(${task.reward})">Start</button>
-            </div>
-        `;
+        
+        // Create task info section
+        const taskInfo = document.createElement('div');
+        taskInfo.className = 'task-info';
+        
+        const taskTitle = document.createElement('h3');
+        taskTitle.textContent = `${task.icon} ${task.name}`;
+        taskInfo.appendChild(taskTitle);
+        
+        const taskDesc = document.createElement('p');
+        taskDesc.textContent = 'Complete this task to earn rewards';
+        taskInfo.appendChild(taskDesc);
+        
+        // Create task reward section
+        const taskReward = document.createElement('div');
+        taskReward.className = 'task-reward';
+        
+        const rewardValue = document.createElement('div');
+        rewardValue.className = 'reward-value';
+        rewardValue.textContent = `+${formatNumber(task.reward)}`;
+        taskReward.appendChild(rewardValue);
+        
+        const taskBtn = document.createElement('button');
+        taskBtn.className = 'task-btn';
+        taskBtn.textContent = 'Start';
+        taskBtn.addEventListener('click', () => completeTask(task.reward));
+        taskReward.appendChild(taskBtn);
+        
+        // Assemble the card
+        card.appendChild(taskInfo);
+        card.appendChild(taskReward);
         list.appendChild(card);
     });
 }
