@@ -1,12 +1,13 @@
 import logging
+import os
 from datetime import datetime
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from sqlalchemy.orm import Session
 from models import User, MysteryBox, get_db, init_db
 import game_logic
 import config
-from flask import Flask
+from flask import Flask, send_from_directory
 import threading
 
 logging.basicConfig(
@@ -44,7 +45,15 @@ def get_or_create_user(telegram_user, db: Session, referrer_id=None) -> User:
     return user
 
 def get_main_menu_keyboard():
+    # Get the webapp URL from environment
+    webapp_url = os.getenv('REPL_SLUG', 'bookfolloxa') + '.replit.app/webapp/'
+    if not webapp_url.startswith('http'):
+        webapp_url = 'https://' + webapp_url
+    
     keyboard = [
+        [
+            InlineKeyboardButton("🎮 العب Influencer Empire 🎮", web_app=WebAppInfo(url=webapp_url))
+        ],
         [
             InlineKeyboardButton("⛏ تعدين", callback_data="mine"),
             InlineKeyboardButton("💰 جمع التلقائي", callback_data="claim_auto")
@@ -799,6 +808,15 @@ def health_check():
 @app.route('/health')
 def health():
     return {'status': 'healthy', 'bot': 'running'}, 200
+
+@app.route('/webapp/')
+@app.route('/webapp/index.html')
+def webapp_index():
+    return send_from_directory('webapp', 'index.html')
+
+@app.route('/webapp/<path:filename>')
+def webapp_files(filename):
+    return send_from_directory('webapp', filename)
 
 def run_flask():
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
