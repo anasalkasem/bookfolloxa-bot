@@ -79,7 +79,8 @@ function loadGameState() {
             ...loaded,
             // Add defaults only for newly added fields that may not exist in old saves
             lastDailyReward: loaded.lastDailyReward ?? 0,
-            dailyStreak: loaded.dailyStreak ?? 0
+            dailyStreak: loaded.dailyStreak ?? 0,
+            campaigns: loaded.campaigns ?? {}
         };
     }
 }
@@ -549,7 +550,32 @@ function showCampaignsModal() {
         const card = document.createElement('div');
         card.className = 'campaign-card';
         
+        // Initialize campaigns tracking if not exists
+        if (!gameState.campaigns) {
+            gameState.campaigns = {};
+        }
+        
+        // Check cooldown
+        const now = Date.now();
+        const cooldown = 24 * 60 * 60 * 1000; // 24 hours
+        const lastLaunch = gameState.campaigns[campaign.id] || 0;
+        const timeSinceLast = now - lastLaunch;
+        const isOnCooldown = timeSinceLast < cooldown;
+        
         const canAfford = gameState.bflx >= campaign.cost;
+        const canLaunch = canAfford && !isOnCooldown;
+        
+        let buttonHTML = '';
+        if (isOnCooldown) {
+            const timeLeft = cooldown - timeSinceLast;
+            const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+            const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+            buttonHTML = `<button class="launch-btn" disabled>⏰ ${hoursLeft}h ${minutesLeft}m</button>`;
+        } else if (!canAfford) {
+            buttonHTML = `<button class="launch-btn" disabled>❌ Not enough</button>`;
+        } else {
+            buttonHTML = `<button class="launch-btn" onclick="launchCampaign('${campaign.id}', ${campaign.cost}, ${campaign.reward}, ${campaign.followers})">🚀 Launch</button>`;
+        }
         
         card.innerHTML = `
             <div class="campaign-info">
@@ -572,9 +598,7 @@ function showCampaignsModal() {
                     <div class="reward-label">Reward:</div>
                     <div class="reward-value">+${formatNumber(campaign.reward)} BFLX</div>
                 </div>
-                <button class="launch-btn" onclick="launchCampaign('${campaign.id}', ${campaign.cost}, ${campaign.reward}, ${campaign.followers})" ${!canAfford ? 'disabled' : ''}>
-                    ${canAfford ? '🚀 Launch' : '❌ Not enough'}
-                </button>
+                ${buttonHTML}
             </div>
         `;
         
@@ -584,6 +608,25 @@ function showCampaignsModal() {
 
 // Launch Campaign
 function launchCampaign(id, cost, reward, followers) {
+    // Initialize campaigns tracking if not exists
+    if (!gameState.campaigns) {
+        gameState.campaigns = {};
+    }
+    
+    // Check cooldown (24 hours)
+    const now = Date.now();
+    const cooldown = 24 * 60 * 60 * 1000; // 24 hours
+    const lastLaunch = gameState.campaigns[id] || 0;
+    const timeSinceLast = now - lastLaunch;
+    
+    if (timeSinceLast < cooldown) {
+        const timeLeft = cooldown - timeSinceLast;
+        const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+        const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+        showNotification(`⏰ Wait ${hoursLeft}h ${minutesLeft}m before launching this campaign again!`, 'error');
+        return;
+    }
+    
     if (gameState.bflx < cost) {
         showNotification('⚠️ Not enough BFLX!', 'error');
         return;
@@ -593,6 +636,7 @@ function launchCampaign(id, cost, reward, followers) {
     gameState.bflx += reward;
     gameState.followers += followers;
     gameState.xp += Math.floor(reward / 100);
+    gameState.campaigns[id] = now;
     
     checkLevelUp();
     
