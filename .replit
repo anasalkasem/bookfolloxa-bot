@@ -13,15 +13,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Deployment Instructions"
+args = "Bookfolloxa Bot"
 
 [[workflows.workflow]]
-name = "Deployment Instructions"
+name = "Bookfolloxa Bot"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash deployment_ready.sh"
+args = "python main.py"
 
 [workflows.workflow.metadata]
 outputType = "console"
@@ -41,6 +41,10 @@ externalPort = 80
 [[ports]]
 localPort = 37449
 externalPort = 3000
+
+[[ports]]
+localPort = 38431
+externalPort = 4200
 
 [[ports]]
 localPort = 39303
