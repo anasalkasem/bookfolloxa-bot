@@ -46,9 +46,10 @@ def get_or_create_user(telegram_user, db: Session, referrer_id=None) -> User:
 
 def get_main_menu_keyboard():
     # Get the webapp URL from environment
-    webapp_url = os.getenv('REPL_SLUG', 'bookfolloxa') + '.replit.app/webapp/'
-    if not webapp_url.startswith('http'):
-        webapp_url = 'https://' + webapp_url
+    # Format: https://{REPL_SLUG}.{REPL_OWNER}.repl.co/webapp/
+    repl_slug = os.getenv('REPL_SLUG', 'bookfolloxa')
+    repl_owner = os.getenv('REPL_OWNER', 'username')
+    webapp_url = f'https://{repl_slug}.{repl_owner}.repl.co/webapp/'
     
     keyboard = [
         [
