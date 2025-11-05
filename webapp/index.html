@@ -133,6 +133,10 @@
                 <span class="menu-icon">💰</span>
                 <span>Wallet</span>
             </button>
+            <button class="menu-item" onclick="showScreen('daily-rewards')">
+                <span class="menu-icon">🎁</span>
+                <span>Daily Rewards</span>
+            </button>
             <button class="menu-item" onclick="showScreen('settings')">
                 <span class="menu-icon">⚙️</span>
                 <span>Settings</span>
@@ -185,6 +189,104 @@
                     <button class="tab-btn" onclick="showTasks('achievements')">Achievements</button>
                 </div>
                 <div class="tasks-list" id="tasksList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="leaderboardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 Leaderboard</h2>
+                <button class="close-modal" onclick="closeModal('leaderboardModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="leaderboardList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="moreModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⋯ More</h2>
+                <button class="close-modal" onclick="closeModal('moreModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="moreList">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="walletModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Wallet</h2>
+                <button class="close-modal" onclick="closeModal('walletModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="walletContent">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Settings</h2>
+                <button class="close-modal" onclick="closeModal('settingsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="settingsContent">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="upgradeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⬆️ Upgrade</h2>
+                <button class="close-modal" onclick="closeModal('upgradeModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="upgradeContent">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="inviteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👥 Invite Friends</h2>
+                <button class="close-modal" onclick="closeModal('inviteModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="inviteContent">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dailyRewardsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎁 Daily Rewards</h2>
+                <button class="close-modal" onclick="closeModal('dailyRewardsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="dailyRewardsContent">
                     <!-- Will be populated by JS -->
                 </div>
             </div>

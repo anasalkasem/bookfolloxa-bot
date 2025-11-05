@@ -12,7 +12,9 @@ let gameState = {
     tapPower: 5,
     influencers: [],
     incomePerHour: 0,
-    lastClaim: Date.now()
+    lastClaim: Date.now(),
+    lastDailyReward: 0,
+    dailyStreak: 0
 };
 
 // Social Media Icons for floating effect
@@ -70,7 +72,15 @@ function initGame() {
 function loadGameState() {
     const saved = localStorage.getItem('bookfolloxa_game');
     if (saved) {
-        gameState = JSON.parse(saved);
+        const loaded = JSON.parse(saved);
+        // Merge loaded state with defaults for new fields only
+        gameState = {
+            ...gameState,
+            ...loaded,
+            // Add defaults only for newly added fields that may not exist in old saves
+            lastDailyReward: loaded.lastDailyReward ?? 0,
+            dailyStreak: loaded.dailyStreak ?? 0
+        };
     }
 }
 
@@ -234,6 +244,68 @@ function startEnergyRegen() {
     }, 3000); // 1 energy every 3 seconds
 }
 
+// Create Particle Burst
+function createParticleBurst(x, y, count = 10) {
+    const container = document.querySelector('.game-container');
+    
+    for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.textContent = ['⭐', '💫', '✨', '💎', '🎯'][Math.floor(Math.random() * 5)];
+        
+        const angle = (Math.PI * 2 * i) / count;
+        const velocity = 100 + Math.random() * 50;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.setProperty('--vx', vx + 'px');
+        particle.style.setProperty('--vy', vy + 'px');
+        
+        container.appendChild(particle);
+        
+        setTimeout(() => {
+            if (container.contains(particle)) {
+                container.removeChild(particle);
+            }
+        }, 1000);
+    }
+}
+
+// Show Level Up Animation
+function showLevelUpAnimation() {
+    const levelUpDiv = document.createElement('div');
+    levelUpDiv.className = 'level-up-animation';
+    levelUpDiv.innerHTML = `
+        <div class="level-up-content">
+            <div class="level-up-icon">🎉</div>
+            <div class="level-up-text">LEVEL UP!</div>
+            <div class="level-up-number">Level ${gameState.level}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(levelUpDiv);
+    
+    // Create particle burst
+    const rect = levelUpDiv.getBoundingClientRect();
+    createParticleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 15);
+    
+    // Haptic feedback
+    if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+    }
+    
+    setTimeout(() => {
+        levelUpDiv.style.animation = 'fadeOut 0.5s ease';
+        setTimeout(() => {
+            if (document.body.contains(levelUpDiv)) {
+                document.body.removeChild(levelUpDiv);
+            }
+        }, 500);
+    }, 2000);
+}
+
 // Passive Income
 function startPassiveIncome() {
     setInterval(() => {
@@ -251,11 +323,7 @@ function checkLevelUp() {
     if (gameState.xp >= xpNeeded) {
         gameState.level++;
         gameState.xp = 0;
-        showNotification(`🎉 Level Up! You are now level ${gameState.level}`, 'success');
-        
-        if (tg && tg.HapticFeedback) {
-            tg.HapticFeedback.notificationOccurred('success');
-        }
+        showLevelUpAnimation();
     }
 }
 
@@ -326,6 +394,28 @@ function showScreen(screen) {
         case 'tasks':
             showTasksModal();
             document.querySelectorAll('.nav-btn')[3].classList.add('active');
+            break;
+        case 'more':
+            showMoreModal();
+            document.querySelectorAll('.nav-btn')[4].classList.add('active');
+            break;
+        case 'leaderboard':
+            showLeaderboardModal();
+            break;
+        case 'wallet':
+            showWalletModal();
+            break;
+        case 'settings':
+            showSettingsModal();
+            break;
+        case 'upgrade':
+            showUpgradeModal();
+            break;
+        case 'invite':
+            showInviteModal();
+            break;
+        case 'daily-rewards':
+            showDailyRewardsModal();
             break;
         default:
             showNotification('Coming soon! 🚧', 'info');
@@ -400,7 +490,121 @@ function showCampaignsModal() {
     modal.classList.add('active');
     
     const list = document.getElementById('campaignsList');
-    list.innerHTML = '<p style="text-align: center; color: #a0aec0;">Coming soon! 🚧</p>';
+    list.innerHTML = '';
+    
+    const campaigns = [
+        { 
+            id: 'twitter_promo',
+            name: 'Twitter Promotion',
+            icon: '🐦',
+            description: 'Promote your content on Twitter',
+            duration: '2 hours',
+            reward: 2000,
+            cost: 500,
+            followers: 1000
+        },
+        { 
+            id: 'instagram_story',
+            name: 'Instagram Story',
+            icon: '📷',
+            description: 'Share an Instagram story',
+            duration: '4 hours',
+            reward: 5000,
+            cost: 1500,
+            followers: 3000
+        },
+        { 
+            id: 'youtube_video',
+            name: 'YouTube Video',
+            icon: '▶️',
+            description: 'Create a YouTube video',
+            duration: '8 hours',
+            reward: 15000,
+            cost: 5000,
+            followers: 10000
+        },
+        { 
+            id: 'tiktok_trend',
+            name: 'TikTok Trend',
+            icon: '🎵',
+            description: 'Join a trending TikTok challenge',
+            duration: '6 hours',
+            reward: 10000,
+            cost: 3000,
+            followers: 5000
+        },
+        { 
+            id: 'facebook_live',
+            name: 'Facebook Live',
+            icon: '👥',
+            description: 'Host a Facebook Live session',
+            duration: '12 hours',
+            reward: 25000,
+            cost: 10000,
+            followers: 20000
+        }
+    ];
+    
+    campaigns.forEach(campaign => {
+        const card = document.createElement('div');
+        card.className = 'campaign-card';
+        
+        const canAfford = gameState.bflx >= campaign.cost;
+        
+        card.innerHTML = `
+            <div class="campaign-info">
+                <div class="campaign-icon">${campaign.icon}</div>
+                <div class="campaign-details">
+                    <h3>${campaign.name}</h3>
+                    <p>${campaign.description}</p>
+                    <div class="campaign-stats">
+                        <span>⏱️ ${campaign.duration}</span>
+                        <span>👥 +${formatNumber(campaign.followers)} followers</span>
+                    </div>
+                </div>
+            </div>
+            <div class="campaign-action">
+                <div class="campaign-cost">
+                    <div class="cost-label">Cost:</div>
+                    <div class="cost-value">${formatNumber(campaign.cost)} BFLX</div>
+                </div>
+                <div class="campaign-reward">
+                    <div class="reward-label">Reward:</div>
+                    <div class="reward-value">+${formatNumber(campaign.reward)} BFLX</div>
+                </div>
+                <button class="launch-btn" onclick="launchCampaign('${campaign.id}', ${campaign.cost}, ${campaign.reward}, ${campaign.followers})" ${!canAfford ? 'disabled' : ''}>
+                    ${canAfford ? '🚀 Launch' : '❌ Not enough'}
+                </button>
+            </div>
+        `;
+        
+        list.appendChild(card);
+    });
+}
+
+// Launch Campaign
+function launchCampaign(id, cost, reward, followers) {
+    if (gameState.bflx < cost) {
+        showNotification('⚠️ Not enough BFLX!', 'error');
+        return;
+    }
+    
+    gameState.bflx -= cost;
+    gameState.bflx += reward;
+    gameState.followers += followers;
+    gameState.xp += Math.floor(reward / 100);
+    
+    checkLevelUp();
+    
+    showNotification(`🎉 Campaign launched! +${formatNumber(reward)} BFLX, +${formatNumber(followers)} followers`, 'success');
+    
+    if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+    }
+    
+    updateUI();
+    saveGameState();
+    showCampaignsModal();
 }
 
 // Show Tasks Modal
@@ -487,6 +691,461 @@ function completeTask(reward) {
     showNotification(`✅ Task completed! +${formatNumber(reward)} BFLX`, 'success');
     updateUI();
     saveGameState();
+}
+
+// Show Leaderboard Modal
+function showLeaderboardModal() {
+    const modal = document.getElementById('leaderboardModal');
+    modal.classList.add('active');
+    
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '';
+    
+    const topPlayers = [
+        { rank: 1, name: 'Player1', bflx: 10000000, followers: 5000000, icon: '👑' },
+        { rank: 2, name: 'Player2', bflx: 8500000, followers: 4200000, icon: '🥈' },
+        { rank: 3, name: 'Player3', bflx: 7000000, followers: 3500000, icon: '🥉' },
+        { rank: 4, name: 'Player4', bflx: 5500000, followers: 2800000, icon: '⭐' },
+        { rank: 5, name: 'Player5', bflx: 4000000, followers: 2000000, icon: '⭐' },
+        { rank: 6, name: 'You', bflx: gameState.bflx, followers: gameState.followers, icon: '👤' }
+    ];
+    
+    topPlayers.forEach(player => {
+        const card = document.createElement('div');
+        card.className = 'leaderboard-item';
+        if (player.name === 'You') card.classList.add('current-user');
+        
+        card.innerHTML = `
+            <div class="rank">${player.icon} #${player.rank}</div>
+            <div class="player-info">
+                <div class="player-name">${player.name}</div>
+                <div class="player-stats">
+                    <span>💰 ${formatNumber(player.bflx)} BFLX</span>
+                    <span>👥 ${formatNumber(player.followers)} followers</span>
+                </div>
+            </div>
+        `;
+        
+        list.appendChild(card);
+    });
+}
+
+// Show More Modal
+function showMoreModal() {
+    const modal = document.getElementById('moreModal');
+    modal.classList.add('active');
+    
+    const list = document.getElementById('moreList');
+    list.innerHTML = `
+        <div class="more-menu">
+            <button class="more-item" onclick="showBoostersModal()">
+                <span class="more-icon">🚀</span>
+                <div class="more-details">
+                    <h3>Boosters</h3>
+                    <p>Temporary power-ups</p>
+                </div>
+            </button>
+            <button class="more-item" onclick="showAchievementsModal()">
+                <span class="more-icon">🏅</span>
+                <div class="more-details">
+                    <h3>Achievements</h3>
+                    <p>View your achievements</p>
+                </div>
+            </button>
+            <button class="more-item" onclick="showStatsModal()">
+                <span class="more-icon">📊</span>
+                <div class="more-details">
+                    <h3>Statistics</h3>
+                    <p>View game statistics</p>
+                </div>
+            </button>
+            <button class="more-item" onclick="showShopModal()">
+                <span class="more-icon">🛒</span>
+                <div class="more-details">
+                    <h3>Shop</h3>
+                    <p>Buy premium items</p>
+                </div>
+            </button>
+        </div>
+    `;
+}
+
+// Placeholder modals for More items
+function showBoostersModal() {
+    showNotification('Boosters coming soon! 🚀', 'info');
+}
+
+function showAchievementsModal() {
+    showNotification('Achievements coming soon! 🏅', 'info');
+}
+
+function showStatsModal() {
+    const stats = `
+📊 Your Statistics:
+━━━━━━━━━━━━━━━
+💰 Total BFLX: ${formatNumber(gameState.bflx)}
+👥 Total Followers: ${formatNumber(gameState.followers)}
+⭐ Level: ${gameState.level}
+✨ XP: ${formatNumber(gameState.xp)}
+👥 Influencers: ${gameState.influencers.length}
+💸 Income/hour: ${formatNumber(gameState.incomePerHour)}
+    `;
+    showNotification(stats, 'info');
+}
+
+function showShopModal() {
+    showNotification('Shop coming soon! 🛒', 'info');
+}
+
+// Show Wallet Modal
+function showWalletModal() {
+    const modal = document.getElementById('walletModal');
+    modal.classList.add('active');
+    
+    const content = document.getElementById('walletContent');
+    content.innerHTML = `
+        <div class="wallet-container">
+            <div class="wallet-balance">
+                <h3>💰 Your Balance</h3>
+                <div class="balance-amount">${formatNumber(gameState.bflx)} BFLX</div>
+                <div class="balance-usd">≈ $${(gameState.bflx * 0.001).toFixed(2)} USD</div>
+            </div>
+            
+            <div class="wallet-actions">
+                <button class="wallet-btn deposit-btn" onclick="showNotification('Deposit coming soon! 💳', 'info')">
+                    <span>💳</span> Deposit
+                </button>
+                <button class="wallet-btn withdraw-btn" onclick="showNotification('Withdraw coming soon! 💸', 'info')">
+                    <span>💸</span> Withdraw
+                </button>
+            </div>
+            
+            <div class="wallet-info">
+                <h3>ℹ️ Wallet Information</h3>
+                <p>Your BFLX tokens are stored securely in your account. You can deposit or withdraw them to/from blockchain wallets in the future.</p>
+                <p style="margin-top: 10px; color: var(--accent-cyan);">🔜 Blockchain integration coming soon!</p>
+            </div>
+        </div>
+    `;
+}
+
+// Show Settings Modal
+function showSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    modal.classList.add('active');
+    
+    const content = document.getElementById('settingsContent');
+    content.innerHTML = `
+        <div class="settings-container">
+            <div class="settings-section">
+                <h3>🔔 Notifications</h3>
+                <div class="setting-item">
+                    <span>Push Notifications</span>
+                    <label class="toggle">
+                        <input type="checkbox" checked onchange="toggleSetting('notifications')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span>Sound Effects</span>
+                    <label class="toggle">
+                        <input type="checkbox" checked onchange="toggleSetting('sound')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>🎨 Appearance</h3>
+                <div class="setting-item">
+                    <span>Haptic Feedback</span>
+                    <label class="toggle">
+                        <input type="checkbox" checked onchange="toggleSetting('haptic')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>📱 Account</h3>
+                <button class="settings-btn" onclick="showNotification('Language settings coming soon! 🌐', 'info')">
+                    🌐 Language
+                </button>
+                <button class="settings-btn danger" onclick="if(confirm('Reset all game data?')) { localStorage.clear(); location.reload(); }">
+                    🔄 Reset Game Data
+                </button>
+            </div>
+            
+            <div class="settings-footer">
+                <p>Version 1.0.0 Beta</p>
+                <p>Made with ❤️ by Replit Agent</p>
+            </div>
+        </div>
+    `;
+}
+
+function toggleSetting(setting) {
+    showNotification(`${setting} setting toggled!`, 'info');
+}
+
+// Show Upgrade Modal
+function showUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    modal.classList.add('active');
+    
+    const content = document.getElementById('upgradeContent');
+    content.innerHTML = `
+        <div class="upgrade-container">
+            <div class="upgrade-stats">
+                <h3>💰 Balance: ${formatNumber(gameState.bflx)} BFLX</h3>
+            </div>
+            
+            <div class="upgrade-list">
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-icon">🔨</div>
+                        <div>
+                            <h3>Tap Power</h3>
+                            <p>Increase BFLX per tap</p>
+                        </div>
+                    </div>
+                    <button class="upgrade-btn" onclick="upgradeFeature('tapPower')">
+                        💎 Upgrade
+                    </button>
+                </div>
+                
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-icon">⚡</div>
+                        <div>
+                            <h3>Energy Capacity</h3>
+                            <p>Increase max energy</p>
+                        </div>
+                    </div>
+                    <button class="upgrade-btn" onclick="upgradeFeature('energyCapacity')">
+                        💎 Upgrade
+                    </button>
+                </div>
+                
+                <div class="upgrade-card">
+                    <div class="upgrade-info">
+                        <div class="upgrade-icon">⏱️</div>
+                        <div>
+                            <h3>Energy Regen</h3>
+                            <p>Faster energy recovery</p>
+                        </div>
+                    </div>
+                    <button class="upgrade-btn" onclick="upgradeFeature('energyRegen')">
+                        💎 Upgrade
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function upgradeFeature(feature) {
+    const costs = {
+        tapPower: 1000,
+        energyCapacity: 2000,
+        energyRegen: 1500
+    };
+    
+    const cost = costs[feature];
+    
+    if (gameState.bflx >= cost) {
+        gameState.bflx -= cost;
+        
+        if (feature === 'tapPower') gameState.tapPower += 1;
+        if (feature === 'energyCapacity') gameState.maxEnergy += 100;
+        
+        showNotification(`✅ ${feature} upgraded!`, 'success');
+        updateUI();
+        saveGameState();
+        showUpgradeModal();
+    } else {
+        showNotification('⚠️ Not enough BFLX!', 'error');
+    }
+}
+
+// Show Daily Rewards Modal
+function showDailyRewardsModal() {
+    const modal = document.getElementById('dailyRewardsModal');
+    modal.classList.add('active');
+    
+    const content = document.getElementById('dailyRewardsContent');
+    
+    const now = Date.now();
+    const lastReward = gameState.lastDailyReward || 0;
+    const timeSinceLastReward = now - lastReward;
+    const oneDay = 24 * 60 * 60 * 1000;
+    
+    const canClaim = timeSinceLastReward >= oneDay || lastReward === 0;
+    const streak = gameState.dailyStreak || 0;
+    
+    const dailyRewards = [
+        { day: 1, reward: 500, icon: '🎁' },
+        { day: 2, reward: 1000, icon: '🎁' },
+        { day: 3, reward: 2000, icon: '🎁' },
+        { day: 4, reward: 5000, icon: '🎁' },
+        { day: 5, reward: 10000, icon: '💎' },
+        { day: 6, reward: 20000, icon: '💎' },
+        { day: 7, reward: 50000, icon: '🏆' }
+    ];
+    
+    let rewardsHTML = '<div class="daily-rewards-container">';
+    rewardsHTML += '<div class="daily-rewards-header">';
+    rewardsHTML += `<h3>🔥 Current Streak: ${streak} days</h3>`;
+    rewardsHTML += '<p>Login daily to earn increasing rewards!</p>';
+    rewardsHTML += '</div>';
+    
+    rewardsHTML += '<div class="daily-rewards-grid">';
+    dailyRewards.forEach((reward, index) => {
+        const day = index + 1;
+        const isClaimed = streak >= day;
+        const isToday = streak + 1 === day && canClaim;
+        
+        rewardsHTML += `
+            <div class="daily-reward-card ${isClaimed ? 'claimed' : ''} ${isToday ? 'today' : ''}">
+                <div class="reward-day">Day ${reward.day}</div>
+                <div class="reward-icon">${reward.icon}</div>
+                <div class="reward-amount">${formatNumber(reward.reward)} BFLX</div>
+                ${isClaimed ? '<div class="claimed-badge">✅ Claimed</div>' : ''}
+                ${isToday ? '<div class="today-badge">🎁 Today</div>' : ''}
+            </div>
+        `;
+    });
+    rewardsHTML += '</div>';
+    
+    if (canClaim) {
+        const nextReward = dailyRewards[Math.min(streak, 6)];
+        rewardsHTML += `
+            <button class="claim-daily-btn" onclick="claimDailyReward()">
+                🎁 Claim ${formatNumber(nextReward.reward)} BFLX
+            </button>
+        `;
+    } else {
+        const timeLeft = oneDay - timeSinceLastReward;
+        const hoursLeft = Math.floor(timeLeft / (60 * 60 * 1000));
+        const minutesLeft = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+        rewardsHTML += `
+            <div class="next-reward-timer">
+                ⏰ Next reward in: ${hoursLeft}h ${minutesLeft}m
+            </div>
+        `;
+    }
+    
+    rewardsHTML += '</div>';
+    content.innerHTML = rewardsHTML;
+}
+
+// Claim Daily Reward
+function claimDailyReward() {
+    const now = Date.now();
+    const lastReward = gameState.lastDailyReward || 0;
+    const timeSinceLastReward = now - lastReward;
+    const oneDay = 24 * 60 * 60 * 1000;
+    const twoDays = 48 * 60 * 60 * 1000;
+    
+    if (timeSinceLastReward < oneDay && lastReward !== 0) {
+        showNotification('⚠️ Already claimed today!', 'error');
+        return;
+    }
+    
+    // Check if streak continues or resets
+    if (timeSinceLastReward > twoDays && lastReward !== 0) {
+        gameState.dailyStreak = 0;
+    }
+    
+    const streak = gameState.dailyStreak || 0;
+    const nextStreak = Math.min(streak + 1, 7);
+    
+    const dailyRewards = [500, 1000, 2000, 5000, 10000, 20000, 50000];
+    const reward = dailyRewards[Math.min(streak, 6)];
+    
+    gameState.bflx += reward;
+    gameState.lastDailyReward = now;
+    gameState.dailyStreak = nextStreak;
+    
+    showNotification(`🎉 Daily reward claimed! +${formatNumber(reward)} BFLX`, 'success');
+    
+    if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+    }
+    
+    updateUI();
+    saveGameState();
+    showDailyRewardsModal();
+}
+
+// Show Invite Modal
+function showInviteModal() {
+    const modal = document.getElementById('inviteModal');
+    modal.classList.add('active');
+    
+    const content = document.getElementById('inviteContent');
+    const referralLink = 'https://t.me/YourBot?start=invite';
+    
+    content.innerHTML = `
+        <div class="invite-container">
+            <div class="invite-header">
+                <h3>👥 Invite Friends & Earn!</h3>
+                <p>Get rewards for each friend you invite</p>
+            </div>
+            
+            <div class="invite-rewards">
+                <div class="reward-card">
+                    <span class="reward-icon">🎁</span>
+                    <div>
+                        <h4>500 BFLX</h4>
+                        <p>Per friend</p>
+                    </div>
+                </div>
+                <div class="reward-card">
+                    <span class="reward-icon">💰</span>
+                    <div>
+                        <h4>10%</h4>
+                        <p>From their earnings</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="invite-link">
+                <input type="text" value="${referralLink}" readonly id="referralInput">
+                <button class="copy-btn" onclick="copyReferralLink()">📋 Copy</button>
+            </div>
+            
+            <button class="share-btn" onclick="shareReferralLink()">
+                📤 Share Link
+            </button>
+            
+            <div class="invite-stats">
+                <div class="stat">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Friends Invited</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">0 BFLX</div>
+                    <div class="stat-label">Earned from Referrals</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function copyReferralLink() {
+    const input = document.getElementById('referralInput');
+    input.select();
+    document.execCommand('copy');
+    showNotification('✅ Link copied!', 'success');
+}
+
+function shareReferralLink() {
+    if (tg && tg.shareURL) {
+        tg.shareURL('https://t.me/YourBot?start=invite');
+    } else {
+        showNotification('Share via Telegram app!', 'info');
+    }
 }
 
 // Close Modal
