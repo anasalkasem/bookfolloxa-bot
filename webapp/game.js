@@ -15,7 +15,10 @@ const gameState = {
         vibration: true
     },
     userGender: 'male', // 'male' or 'female'
-    lastOnline: Date.now()
+    lastOnline: Date.now(),
+    lastAdWatch: 0,
+    dailyRewardDay: 0,
+    lastDailyClaim: 0
 };
 
 // ===== CONSTANTS =====
@@ -534,6 +537,198 @@ function loadGameState() {
         updateCharacter();
         updateUI();
         console.log('💾 Game loaded!');
+    }
+}
+
+// ===== STORE & MONETIZATION =====
+function buyBFLX(package) {
+    const packages = {
+        starter: { amount: 50000, price: 0.99 },
+        popular: { amount: 250000, price: 4.99 },
+        pro: { amount: 1000000, price: 14.99 },
+        ultimate: { amount: 5000000, price: 49.99 }
+    };
+    
+    const pkg = packages[package];
+    showNotification(`💳 Opening payment for ${formatNumber(pkg.amount)} BFLX ($${pkg.price})...`, 'info');
+    
+    // Simulate purchase (in real app, use Telegram Payments API)
+    setTimeout(() => {
+        gameState.bflx += pkg.amount;
+        showNotification(`✅ Purchase successful! +${formatNumber(pkg.amount)} BFLX`, 'success');
+        updateUI();
+        saveGameState();
+    }, 1500);
+}
+
+function buyService(service) {
+    const services = {
+        ig_100: { name: '100 Instagram Followers', cost: 10000 },
+        tt_1000: { name: '1000 TikTok Likes', cost: 20000 }
+    };
+    
+    const svc = services[service];
+    
+    if (gameState.bflx < svc.cost) {
+        showNotification('❌ Not enough BFLX!', 'error');
+        return;
+    }
+    
+    gameState.bflx -= svc.cost;
+    showNotification(`✅ Order placed for ${svc.name}!`, 'success');
+    updateUI();
+    saveGameState();
+}
+
+function watchAd() {
+    const now = Date.now();
+    const cooldown = 5 * 60 * 1000; // 5 minutes
+    const timeSinceLastAd = now - gameState.lastAdWatch;
+    
+    if (timeSinceLastAd < cooldown) {
+        const remaining = Math.ceil((cooldown - timeSinceLastAd) / 1000 / 60);
+        showNotification(`⏰ Please wait ${remaining} more minutes`, 'error');
+        return;
+    }
+    
+    showNotification('📺 Loading ad...', 'info');
+    
+    // Simulate ad watch (in real app, use actual ad SDK)
+    setTimeout(() => {
+        gameState.bflx += 500;
+        gameState.lastAdWatch = now;
+        showNotification('✅ Ad completed! +500 BFLX', 'success');
+        updateUI();
+        saveGameState();
+        updateAdCooldown();
+    }, 2000);
+}
+
+function updateAdCooldown() {
+    const cooldownEl = document.getElementById('adCooldown');
+    if (!cooldownEl) return;
+    
+    const cooldown = 5 * 60 * 1000;
+    const timeSinceLastAd = Date.now() - gameState.lastAdWatch;
+    
+    if (timeSinceLastAd < cooldown) {
+        const remaining = Math.ceil((cooldown - timeSinceLastAd) / 1000 / 60);
+        cooldownEl.textContent = `⏰ ${remaining}m`;
+    } else {
+        cooldownEl.textContent = '';
+    }
+}
+
+// ===== LEADERBOARD =====
+function renderLeaderboard() {
+    const leaderboardList = document.getElementById('leaderboardList');
+    
+    // Mock data (in real app, fetch from server)
+    const players = [
+        { rank: 1, name: 'Mohammed', bflx: 5000000, avatar: '👑' },
+        { rank: 2, name: 'Sara', bflx: 3500000, avatar: '💎' },
+        { rank: 3, name: 'Ahmed', bflx: 2800000, avatar: '⭐' },
+        { rank: 4, name: 'Fatima', bflx: 1900000, avatar: '🌟' },
+        { rank: 5, name: 'You', bflx: gameState.bflx, avatar: '👤' }
+    ];
+    
+    leaderboardList.innerHTML = players.map(player => `
+        <div class="leaderboard-item ${player.name === 'You' ? 'highlight' : ''}">
+            <div class="rank">${player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : `#${player.rank}`}</div>
+            <div class="player-avatar">${player.avatar}</div>
+            <div class="player-info">
+                <div class="player-name">${player.name}</div>
+                <div class="player-earnings">${formatNumber(player.bflx)} BFLX</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ===== DAILY REWARDS =====
+function renderDailyRewards() {
+    const grid = document.getElementById('dailyRewardsGrid');
+    const rewards = [
+        { day: 1, reward: 1000 },
+        { day: 2, reward: 2000 },
+        { day: 3, reward: 3000 },
+        { day: 4, reward: 5000 },
+        { day: 5, reward: 7000 },
+        { day: 6, reward: 10000 },
+        { day: 7, reward: 20000 }
+    ];
+    
+    const currentDay = gameState.dailyRewardDay;
+    
+    grid.innerHTML = rewards.map(r => `
+        <div class="daily-reward-card ${r.day <= currentDay ? 'claimed' : ''} ${r.day === currentDay + 1 ? 'next' : ''}">
+            <div class="day-badge">Day ${r.day}</div>
+            <div class="reward-amount">${formatNumber(r.reward)} BFLX</div>
+            ${r.day <= currentDay ? '<div class="claimed-badge">✅</div>' : ''}
+        </div>
+    `).join('');
+    
+    // Check if can claim
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const canClaim = (now - gameState.lastDailyClaim) >= oneDayMs;
+    
+    const claimBtn = document.getElementById('claimDailyBtn');
+    if (canClaim && currentDay < 7) {
+        claimBtn.disabled = false;
+        claimBtn.textContent = 'Claim Today\'s Reward';
+    } else if (currentDay >= 7) {
+        claimBtn.disabled = true;
+        claimBtn.textContent = 'All Rewards Claimed! 🎉';
+    } else {
+        claimBtn.disabled = true;
+        const hoursLeft = Math.ceil((oneDayMs - (now - gameState.lastDailyClaim)) / (60 * 60 * 1000));
+        claimBtn.textContent = `Come back in ${hoursLeft}h`;
+    }
+}
+
+function claimDailyReward() {
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    
+    if ((now - gameState.lastDailyClaim) < oneDayMs) {
+        showNotification('⏰ Come back tomorrow!', 'error');
+        return;
+    }
+    
+    gameState.dailyRewardDay++;
+    gameState.lastDailyClaim = now;
+    
+    const rewards = [1000, 2000, 3000, 5000, 7000, 10000, 20000];
+    const reward = rewards[gameState.dailyRewardDay - 1];
+    
+    gameState.bflx += reward;
+    showNotification(`🎉 Daily reward claimed! +${formatNumber(reward)} BFLX`, 'success');
+    updateUI();
+    renderDailyRewards();
+    saveGameState();
+}
+
+// ===== HELPER: SHOW PAGE =====
+function showPage(pageName) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+    });
+    
+    // Show target page
+    const targetPage = document.getElementById(`${pageName}Page`);
+    if (targetPage) {
+        targetPage.classList.add('active');
+        
+        // Load content
+        if (pageName === 'store') {
+            updateAdCooldown();
+            setInterval(updateAdCooldown, 60000);
+        } else if (pageName === 'leaderboard') {
+            renderLeaderboard();
+        } else if (pageName === 'daily') {
+            renderDailyRewards();
+        }
     }
 }
 

@@ -126,10 +126,110 @@
             </div>
         </div>
 
+        <!-- STORE/WALLET PAGE -->
+        <div class="page" id="storePage">
+            <h2 class="page-title">💎 Store & Wallet</h2>
+            
+            <div class="store-section">
+                <h3>🛒 Buy BFLX</h3>
+                <div class="store-grid">
+                    <div class="store-item" onclick="buyBFLX('starter')">
+                        <div class="store-badge">Starter</div>
+                        <div class="store-amount">50K BFLX</div>
+                        <div class="store-price">$0.99</div>
+                        <button class="store-btn">Buy Now</button>
+                    </div>
+                    <div class="store-item popular" onclick="buyBFLX('popular')">
+                        <div class="store-badge">Popular ⭐</div>
+                        <div class="store-amount">250K BFLX</div>
+                        <div class="store-price">$4.99</div>
+                        <button class="store-btn">Buy Now</button>
+                    </div>
+                    <div class="store-item" onclick="buyBFLX('pro')">
+                        <div class="store-badge">Pro</div>
+                        <div class="store-amount">1M BFLX</div>
+                        <div class="store-price">$14.99</div>
+                        <button class="store-btn">Buy Now</button>
+                    </div>
+                    <div class="store-item premium" onclick="buyBFLX('ultimate')">
+                        <div class="store-badge">Ultimate 💎</div>
+                        <div class="store-amount">5M BFLX</div>
+                        <div class="store-price">$49.99</div>
+                        <button class="store-btn">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="store-section">
+                <h3>📱 Social Services</h3>
+                <div class="service-list">
+                    <div class="service-item">
+                        <div class="service-info">
+                            <div class="service-icon">📷</div>
+                            <div>
+                                <div class="service-name">100 Instagram Followers</div>
+                                <div class="service-desc">Real active followers</div>
+                            </div>
+                        </div>
+                        <button class="service-buy-btn" onclick="buyService('ig_100')">
+                            💎 10,000 BFLX
+                        </button>
+                    </div>
+                    <div class="service-item">
+                        <div class="service-info">
+                            <div class="service-icon">🎵</div>
+                            <div>
+                                <div class="service-name">1000 TikTok Likes</div>
+                                <div class="service-desc">Boost your engagement</div>
+                            </div>
+                        </div>
+                        <button class="service-buy-btn" onclick="buyService('tt_1000')">
+                            💎 20,000 BFLX
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ad-section">
+                <button class="ad-watch-btn" onclick="watchAd()">
+                    <span class="ad-icon">📺</span>
+                    <span>Watch Ad & Earn 500 BFLX</span>
+                    <span class="ad-cooldown" id="adCooldown"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- LEADERBOARD PAGE -->
+        <div class="page" id="leaderboardPage">
+            <h2 class="page-title">🏆 Top Players</h2>
+            <div class="leaderboard-list" id="leaderboardList"></div>
+        </div>
+
+        <!-- DAILY REWARDS PAGE -->
+        <div class="page" id="dailyPage">
+            <h2 class="page-title">🎁 Daily Rewards</h2>
+            <div class="daily-rewards-grid" id="dailyRewardsGrid"></div>
+            <button class="claim-daily-btn" id="claimDailyBtn" onclick="claimDailyReward()">
+                Claim Today's Reward
+            </button>
+        </div>
+
         <!-- MORE PAGE -->
         <div class="page" id="morePage">
             <h2 class="page-title">⚙️ Settings & More</h2>
             <div class="settings-list">
+                <div class="setting-item clickable" onclick="showPage('store')">
+                    <span>💎 Store & Wallet</span>
+                    <span>→</span>
+                </div>
+                <div class="setting-item clickable" onclick="showPage('leaderboard')">
+                    <span>🏆 Leaderboard</span>
+                    <span>→</span>
+                </div>
+                <div class="setting-item clickable" onclick="showPage('daily')">
+                    <span>🎁 Daily Rewards</span>
+                    <span>→</span>
+                </div>
                 <div class="setting-item">
                     <span>🔊 Sound Effects</span>
                     <label class="switch">

@@ -799,3 +799,285 @@ input:checked + .slider:before {
         height: 320px;
     }
 }
+
+/* ===== STORE & WALLET ===== */
+.store-section {
+    margin-bottom: 24px;
+}
+
+.store-section h3 {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.store-item {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.store-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(124, 58, 237, 0.3);
+}
+
+.store-item.popular {
+    border: 2px solid var(--accent-purple);
+}
+
+.store-item.premium {
+    border: 2px solid #ffd700;
+}
+
+.store-badge {
+    font-size: 12px;
+    color: var(--accent-cyan);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.store-amount {
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    margin: 8px 0;
+}
+
+.store-price {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.store-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.store-btn:hover {
+    transform: scale(1.05);
+}
+
+.service-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.service-item {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.service-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.service-icon {
+    font-size: 32px;
+}
+
+.service-name {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.service-desc {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.service-buy-btn {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ad-section {
+    margin-top: 24px;
+}
+
+.ad-watch-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #ff6b9d, #7c3aed);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.ad-watch-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255, 107, 157, 0.5);
+}
+
+.ad-icon {
+    font-size: 24px;
+}
+
+.ad-cooldown {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== LEADERBOARD ===== */
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.leaderboard-item {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.leaderboard-item.highlight {
+    border: 2px solid var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.1);
+}
+
+.rank {
+    font-size: 24px;
+    font-weight: 700;
+    min-width: 50px;
+    text-align: center;
+}
+
+.player-avatar {
+    font-size: 36px;
+}
+
+.player-info {
+    flex: 1;
+}
+
+.player-name {
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.player-earnings {
+    color: var(--accent-cyan);
+    font-size: 14px;
+}
+
+/* ===== DAILY REWARDS ===== */
+.daily-rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.daily-reward-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.daily-reward-card.next {
+    border: 2px solid var(--accent-cyan);
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+.daily-reward-card.claimed {
+    opacity: 0.5;
+}
+
+.day-badge {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.reward-amount {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
+
+.claimed-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 20px;
+}
+
+.claim-daily-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.claim-daily-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 217, 255, 0.5);
+}
+
+.claim-daily-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
