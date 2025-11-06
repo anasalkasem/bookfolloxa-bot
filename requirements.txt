@@ -9,4 +9,7 @@ rembg
 onnxruntime
 aiogram-tonconnect
 pytonconnect
+telegram-wallet-pay
+python-telegram-bot[ext]
 telegram
+telegram-wallet-pay
