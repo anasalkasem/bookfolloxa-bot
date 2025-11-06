@@ -1021,7 +1021,20 @@ def create_invoice():
                 logger.error(f"Error creating invoice: {e}", exc_info=True)
                 return None
         
-        invoice_link = asyncio.run(create_invoice_link())
+        # Use existing event loop or create new one safely
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If loop is running, use asyncio.run in thread
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, create_invoice_link())
+                    invoice_link = future.result(timeout=10)
+            else:
+                invoice_link = loop.run_until_complete(create_invoice_link())
+        except RuntimeError:
+            # No event loop, create one
+            invoice_link = asyncio.run(create_invoice_link())
         
         if invoice_link:
             logger.info(f"✅ Invoice created for user {telegram_id}: {package_type} ({pkg['stars']} stars)")
