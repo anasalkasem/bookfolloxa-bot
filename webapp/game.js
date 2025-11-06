@@ -747,13 +747,35 @@ function renderDailyRewards() {
     
     const currentDay = gameState.dailyRewardDay;
     
-    grid.innerHTML = rewards.map(r => `
-        <div class="daily-reward-card ${r.day <= currentDay ? 'claimed' : ''} ${r.day === currentDay + 1 ? 'next' : ''}">
-            <div class="day-badge">Day ${r.day}</div>
-            <div class="reward-amount">${formatNumber(r.reward)} BFLX</div>
-            ${r.day <= currentDay ? '<div class="claimed-badge">✅</div>' : ''}
-        </div>
-    `).join('');
+    // Clear grid and rebuild using safe DOM methods
+    grid.innerHTML = '';
+    
+    rewards.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'daily-reward-card';
+        if (r.day <= currentDay) card.classList.add('claimed');
+        if (r.day === currentDay + 1) card.classList.add('next');
+        
+        const dayBadge = document.createElement('div');
+        dayBadge.className = 'day-badge';
+        dayBadge.textContent = `Day ${r.day}`;
+        
+        const rewardAmount = document.createElement('div');
+        rewardAmount.className = 'reward-amount';
+        rewardAmount.textContent = `${formatNumber(r.reward)} BFLX`;
+        
+        card.appendChild(dayBadge);
+        card.appendChild(rewardAmount);
+        
+        if (r.day <= currentDay) {
+            const claimedBadge = document.createElement('div');
+            claimedBadge.className = 'claimed-badge';
+            claimedBadge.textContent = '✅';
+            card.appendChild(claimedBadge);
+        }
+        
+        grid.appendChild(card);
+    });
     
     // Check if can claim
     const now = Date.now();
