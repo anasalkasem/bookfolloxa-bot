@@ -34,7 +34,12 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Influencer Empire WebApp:** Tap-to-Earn game with social media theme, influencer hiring (5 levels), smart energy system, passive income, daily/social tasks, achievements, critical hits (x10 chance), visual effects, and auto-save.
 - **Security:** Full Telegram WebApp SDK authentication with HMAC validation, anti-cheat system (max balance, level, energy limits), authorization checks, input validation, and rate limiting readiness.
 - **Real-time Features:** Live leaderboard, cross-device sync, and persistent progress saved on the server.
-- **Monetization:** BFLX store (4 packages), social media services (Instagram followers, TikTok likes), rewarded ads (+500 BFLX every 5 mins), and 7-day daily rewards (1K → 20K BFLX).
+- **Monetization:** 
+  - **Telegram Stars Payments:** Integrated real payment system using Telegram Stars (XTR currency)
+  - **BFLX Packages:** 4 packages (Starter: 50⭐/2.5K BFLX, Pro: 200⭐/10K BFLX, King: 800⭐/50K BFLX, Legend: 2000⭐/150K BFLX)
+  - Social media services (Instagram followers, TikTok likes)
+  - Rewarded ads (+500 BFLX every 5 mins)
+  - 7-day daily rewards (1K → 20K BFLX)
 - **Campaigns:** Social Media Boost, Influencer Collab, Viral Challenge, Brand Partnership.
 - **Wallet Management:** For BFLX, SOL, USDT.
 - **Settings:** Language, Sound, Notifications, Theme.
@@ -55,6 +60,12 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
 **Recent Changes (November 2025):**
+- **✅ Telegram Stars Integration (Latest):** Implemented real payment system using Telegram Stars API
+  - Added Payment model to track all transactions in database
+  - Created pre_checkout_query and successful_payment handlers
+  - Built /api/create_invoice endpoint for generating payment links
+  - Updated WebApp to use real Telegram payment flow (openInvoice)
+  - Replaced fake/simulated purchases with authentic Telegram Stars payments
 - Converted bot from Polling mode to Webhook mode for better stability on Replit
 - Resolved "Conflict: terminated by other getUpdates request" issue
 - Enhanced authentication logging for better debugging

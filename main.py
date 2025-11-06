@@ -803,40 +803,61 @@ async def successful_payment_handler(update: Update, context: ContextTypes.DEFAU
         db = get_db()
         user = get_or_create_user(message.from_user, db)
         
+        existing_payment = db.query(Payment).filter(
+            Payment.charge_id == payment.telegram_payment_charge_id
+        ).first()
+        
+        if existing_payment:
+            logger.warning(f"Duplicate payment detected: {payment.telegram_payment_charge_id}")
+            await message.reply_text("⚠️ هذا الدفع تم معالجته مسبقاً!")
+            db.close()
+            return
+        
         payload_parts = payment.invoice_payload.split('_')
         package_type = payload_parts[0]
         
-        if package_type in BFLX_PACKAGES:
-            pkg = BFLX_PACKAGES[package_type]
-            
-            payment_record = Payment(
-                user_id=user.id,
-                charge_id=payment.telegram_payment_charge_id,
-                invoice_payload=payment.invoice_payload,
-                amount_stars=payment.total_amount,
-                amount_bflx=pkg['bflx'],
-                status='paid',
-                paid_at=datetime.utcnow()
-            )
-            db.add(payment_record)
-            
-            user.balance += pkg['bflx']
-            user.total_earned += pkg['bflx']
-            db.commit()
-            
-            await message.reply_text(
-                f"✅ تم الدفع بنجاح!\n\n"
-                f"🎁 حصلت على: {pkg['bflx']:,} BFLX\n"
-                f"💰 رصيدك الجديد: {user.balance:,} BFLX\n\n"
-                f"شكراً لدعمك! 🌟"
-            )
-            
-            logger.info(f"Payment successful: User {user.id} bought {package_type} for {payment.total_amount} stars")
+        if package_type not in BFLX_PACKAGES:
+            logger.error(f"Invalid package type in payload: {package_type}")
+            await message.reply_text("❌ نوع الباقة غير صحيح. يرجى التواصل مع الدعم.")
+            db.close()
+            return
+        
+        pkg = BFLX_PACKAGES[package_type]
+        
+        if payment.total_amount != pkg['stars']:
+            logger.error(f"Payment amount mismatch: expected {pkg['stars']}, got {payment.total_amount}")
+            await message.reply_text("❌ مبلغ الدفع غير صحيح. يرجى التواصل مع الدعم.")
+            db.close()
+            return
+        
+        payment_record = Payment(
+            user_id=user.id,
+            charge_id=payment.telegram_payment_charge_id,
+            invoice_payload=payment.invoice_payload,
+            amount_stars=payment.total_amount,
+            amount_bflx=pkg['bflx'],
+            status='paid',
+            paid_at=datetime.utcnow()
+        )
+        db.add(payment_record)
+        
+        user.balance += pkg['bflx']
+        user.total_earned += pkg['bflx']
+        db.commit()
+        
+        await message.reply_text(
+            f"✅ تم الدفع بنجاح!\n\n"
+            f"🎁 حصلت على: {pkg['bflx']:,} BFLX\n"
+            f"💰 رصيدك الجديد: {user.balance:,} BFLX\n\n"
+            f"شكراً لدعمك! 🌟"
+        )
+        
+        logger.info(f"✅ Payment successful: User {user.id} bought {package_type} ({pkg['bflx']:,} BFLX) for {payment.total_amount} stars - Charge ID: {payment.telegram_payment_charge_id}")
         
         db.close()
         
     except Exception as e:
-        logger.error(f"Error processing payment: {e}")
+        logger.error(f"Error processing payment: {e}", exc_info=True)
         await message.reply_text("❌ حدث خطأ في معالجة الدفع. يرجى التواصل مع الدعم.")
 
 app = Flask(__name__)
@@ -964,12 +985,28 @@ def create_invoice():
     from flask import jsonify, request
     import asyncio
     try:
+        init_data = request.headers.get('X-Telegram-Init-Data') or request.json.get('_auth')
+        if not init_data:
+            logger.warning("⚠️ SECURITY: Missing authentication in create_invoice")
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from webapp.telegram_auth import validate_telegram_webapp_data
+        user_data = validate_telegram_webapp_data(init_data, config.TELEGRAM_BOT_TOKEN)
+        
+        if not user_data:
+            logger.warning("⚠️ SECURITY: HMAC validation failed in create_invoice")
+            return jsonify({'error': 'Unauthorized'}), 403
+        
         data = request.json
         telegram_id = data.get('telegram_id')
         package_type = data.get('package')
         
         if not telegram_id or not package_type:
             return jsonify({'error': 'Missing parameters'}), 400
+        
+        if user_data.get('id') != telegram_id:
+            logger.warning(f"User ID mismatch: {user_data.get('id')} != {telegram_id}")
+            return jsonify({'error': 'Unauthorized'}), 403
         
         if package_type not in BFLX_PACKAGES:
             return jsonify({'error': 'Invalid package'}), 400

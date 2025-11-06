@@ -618,14 +618,18 @@ async function buyBFLX(packageType) {
             return;
         }
         
+        const initData = tg.initData;
+        
         const response = await fetch('/api/create_invoice', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': initData
             },
             body: JSON.stringify({
                 telegram_id: user.id,
-                package: packageType
+                package: packageType,
+                _auth: initData
             })
         });
         
