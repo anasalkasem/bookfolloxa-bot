@@ -50,9 +50,15 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Bot Framework:** `python-telegram-bot` 21.0.1.
 - **ORM:** SQLAlchemy 2.0.25.
 - **Scheduler:** APScheduler 3.10.4.
-- **Deployment:** Reserved VM on Replit using polling mode.
+- **Deployment:** Reserved VM on Replit using **Webhook mode** (November 2025).
 - **Code Organization:** Modular structure with `main.py` (bot and Flask server), `models.py` (DB models), `game_logic.py`, `config.py`, `requirements.txt`, `webapp/` for WebApp, and `.env` for environment variables.
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
+
+**Recent Changes (November 2025):**
+- Converted bot from Polling mode to Webhook mode for better stability on Replit
+- Resolved "Conflict: terminated by other getUpdates request" issue
+- Enhanced authentication logging for better debugging
+- Cleaned up unused code and imports
 
 ### External Dependencies
 - **Telegram Bot API:** For bot interaction and WebApp integration.
