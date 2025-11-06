@@ -1028,16 +1028,7 @@ def create_invoice():
                 logger.error(f"Error creating invoice: {e}", exc_info=True)
                 return None
         
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        
-        invoice_link = loop.run_until_complete(create_invoice_link())
+        invoice_link = asyncio.run(create_invoice_link())
         
         if invoice_link:
             logger.info(f"✅ Invoice created for user {telegram_id}: {package_type} ({pkg['stars']} stars)")
@@ -1106,11 +1097,8 @@ def webhook():
         update_data = request.get_json(force=True)
         update = Update.de_json(update_data, telegram_app.bot)
         
-        # Process update in async context
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(telegram_app.process_update(update))
-        loop.close()
+        # Process update in async context using asyncio.run
+        asyncio.run(telegram_app.process_update(update))
         
         return 'OK', 200
     except Exception as e:
