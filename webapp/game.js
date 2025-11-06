@@ -1284,7 +1284,7 @@ function initBackgroundMusic() {
         musicContext = new (window.AudioContext || window.webkitAudioContext)();
         musicGain = musicContext.createGain();
         musicGain.connect(musicContext.destination);
-        musicGain.gain.value = 0.3;
+        musicGain.gain.value = 0.25;
     }
 }
 
@@ -1292,37 +1292,71 @@ function playMelody() {
     if (!musicContext || !gameState.settings.music || !isPlaying) return;
     
     const melody = [
-        { note: 'C5', duration: 0.5 },
-        { note: 'E5', duration: 0.5 },
-        { note: 'G5', duration: 0.5 },
-        { note: 'A5', duration: 0.5 },
-        { note: 'G5', duration: 0.5 },
-        { note: 'E5', duration: 0.5 },
-        { note: 'D5', duration: 0.5 },
-        { note: 'E5', duration: 1.0 }
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'C5', duration: 0.4, velocity: 0.25 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'E5', duration: 0.8, velocity: 0.35 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'D5', duration: 0.8, velocity: 0.3 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'G5', duration: 0.4, velocity: 0.35 },
+        { note: 'G5', duration: 0.8, velocity: 0.35 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'C5', duration: 0.4, velocity: 0.25 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'C5', duration: 1.2, velocity: 0.35 }
+    ];
+    
+    const bassLine = [
+        { note: 'C3', duration: 1.6 },
+        { note: 'G3', duration: 1.6 },
+        { note: 'C3', duration: 1.6 },
+        { note: 'G3', duration: 1.6 },
+        { note: 'C3', duration: 1.6 },
+        { note: 'G3', duration: 1.6 },
+        { note: 'C3', duration: 3.2 }
     ];
     
     const noteFrequencies = {
-        'C5': 523.25, 'D5': 587.33, 'E5': 659.25,
-        'F5': 698.46, 'G5': 783.99, 'A5': 880.00,
-        'B5': 987.77
+        'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'F3': 174.61, 'G3': 196.00,
+        'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00,
+        'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99, 'A5': 880.00, 'B5': 987.77
     };
     
     let time = musicContext.currentTime;
     let totalDuration = 0;
     
-    melody.forEach(({ note, duration }) => {
+    melody.forEach(({ note, duration, velocity }) => {
         const oscillator = musicContext.createOscillator();
         const gainNode = musicContext.createGain();
+        const filterNode = musicContext.createBiquadFilter();
         
-        oscillator.type = 'sine';
+        oscillator.type = 'triangle';
         oscillator.frequency.value = noteFrequencies[note];
         
+        filterNode.type = 'lowpass';
+        filterNode.frequency.value = 2000;
+        filterNode.Q.value = 1;
+        
         gainNode.gain.setValueAtTime(0, time);
-        gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02);
+        gainNode.gain.linearRampToValueAtTime(velocity, time + 0.05);
         gainNode.gain.exponentialRampToValueAtTime(0.01, time + duration);
         
-        oscillator.connect(gainNode);
+        oscillator.connect(filterNode);
+        filterNode.connect(gainNode);
         gainNode.connect(musicGain);
         
         oscillator.start(time);
@@ -1330,6 +1364,27 @@ function playMelody() {
         
         time += duration;
         totalDuration += duration;
+    });
+    
+    let bassTime = musicContext.currentTime;
+    bassLine.forEach(({ note, duration }) => {
+        const oscillator = musicContext.createOscillator();
+        const gainNode = musicContext.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = noteFrequencies[note];
+        
+        gainNode.gain.setValueAtTime(0, bassTime);
+        gainNode.gain.linearRampToValueAtTime(0.15, bassTime + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, bassTime + duration);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(musicGain);
+        
+        oscillator.start(bassTime);
+        oscillator.stop(bassTime + duration);
+        
+        bassTime += duration;
     });
     
     if (isPlaying) {
