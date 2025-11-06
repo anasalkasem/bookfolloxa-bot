@@ -44,15 +44,8 @@ def get_or_create_user(telegram_user, db: Session, referrer_id=None) -> User:
     return user
 
 def get_main_menu_keyboard():
-    # Get the webapp URL from environment - use REPLIT_DEV_DOMAIN
-    dev_domain = os.getenv('REPLIT_DEV_DOMAIN', '')
-    if dev_domain:
-        webapp_url = f'https://{dev_domain}/webapp/'
-    else:
-        # Fallback to old format
-        repl_slug = os.getenv('REPL_SLUG', 'bookfolloxa')
-        repl_owner = os.getenv('REPL_OWNER', 'username')
-        webapp_url = f'https://{repl_slug}.{repl_owner}.repl.co/webapp/'
+    # Use production URL for deployed app
+    webapp_url = 'https://raaik-hal-tastaie-anass111173.replit.app/webapp/'
     
     logger.info(f"Using webapp URL: {webapp_url}")
     
@@ -1075,13 +1068,8 @@ telegram_app = None
 
 def get_webhook_url():
     """Get the webhook URL for this deployment"""
-    dev_domain = os.getenv('REPLIT_DEV_DOMAIN', '')
-    if dev_domain:
-        return f'https://{dev_domain}/webhook'
-    
-    repl_slug = os.getenv('REPL_SLUG', 'bookfolloxa')
-    repl_owner = os.getenv('REPL_OWNER', 'username')
-    return f'https://{repl_slug}.{repl_owner}.repl.co/webhook'
+    # Use production URL for deployed app
+    return 'https://raaik-hal-tastaie-anass111173.replit.app/webhook'
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
