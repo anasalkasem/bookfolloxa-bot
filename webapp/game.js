@@ -19,7 +19,9 @@ const gameState = {
     lastOnline: Date.now(),
     lastAdWatch: 0,
     dailyRewardDay: 0,
-    lastDailyClaim: 0
+    lastDailyClaim: 0,
+    walletConnected: false,
+    walletAddress: null
 };
 
 // ===== MUSIC SYSTEM =====
@@ -1450,6 +1452,75 @@ function updateMusicButtonState() {
     }
 }
 
+// ===== WALLET CONNECTION =====
+async function connectWallet() {
+    try {
+        const btn = document.getElementById('connectWalletBtn');
+        const status = document.getElementById('walletStatus');
+        
+        // Check if Telegram WebApp is available
+        if (!window.Telegram?.WebApp) {
+            showNotification('⚠️ Please open this in Telegram', 'error');
+            return;
+        }
+        
+        // Show loading state
+        btn.innerHTML = '<span class="wallet-icon">⏳</span><span class="wallet-text">Connecting...</span>';
+        btn.disabled = true;
+        
+        // Simulate wallet connection (In production, integrate with TON Connect or Telegram Wallet)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // For demo: Generate a fake wallet address
+        const fakeAddress = 'UQ' + Math.random().toString(36).substring(2, 15).toUpperCase();
+        
+        // Update game state
+        gameState.walletConnected = true;
+        gameState.walletAddress = fakeAddress;
+        saveGameState();
+        
+        // Update UI
+        btn.style.display = 'none';
+        status.style.display = 'inline-flex';
+        status.classList.add('connected');
+        status.innerHTML = `
+            <span class="status-icon">✅</span>
+            <span class="status-text">Connected: ${fakeAddress.substring(0, 8)}...${fakeAddress.substring(fakeAddress.length - 6)}</span>
+        `;
+        
+        showNotification('✅ Wallet connected successfully!', 'success');
+        
+        // Save to backend
+        if (typeof saveToBackend === 'function') {
+            await saveToBackend();
+        }
+        
+    } catch (error) {
+        console.error('Wallet connection error:', error);
+        showNotification('❌ Failed to connect wallet', 'error');
+        
+        // Reset button
+        const btn = document.getElementById('connectWalletBtn');
+        btn.innerHTML = '<span class="wallet-icon">💼</span><span class="wallet-text">Connect your wallet</span>';
+        btn.disabled = false;
+    }
+}
+
+function checkWalletStatus() {
+    const btn = document.getElementById('connectWalletBtn');
+    const status = document.getElementById('walletStatus');
+    
+    if (gameState.walletConnected && gameState.walletAddress) {
+        btn.style.display = 'none';
+        status.style.display = 'inline-flex';
+        status.classList.add('connected');
+        status.innerHTML = `
+            <span class="status-icon">✅</span>
+            <span class="status-text">Connected: ${gameState.walletAddress.substring(0, 8)}...${gameState.walletAddress.substring(gameState.walletAddress.length - 6)}</span>
+        `;
+    }
+}
+
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎮 Bookfolloxa Game Initialized!');
@@ -1469,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderTasks();
     renderReferralPage();
     renderMorePage();
+    checkWalletStatus();
     
     // Start game loops
     setInterval(regenerateEnergy, ENERGY_REGEN_INTERVAL);

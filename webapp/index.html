@@ -202,6 +202,18 @@
             <div class="store-section">
                 <h3>💼 Telegram Wallet - Deposit & Withdraw</h3>
                 
+                <!-- CONNECT WALLET BUTTON -->
+                <div class="connect-wallet-container">
+                    <button class="connect-wallet-btn" id="connectWalletBtn" onclick="connectWallet()">
+                        <span class="wallet-icon">💼</span>
+                        <span class="wallet-text">Connect your wallet</span>
+                    </button>
+                    <div class="wallet-status" id="walletStatus" style="display: none;">
+                        <span class="status-icon">✅</span>
+                        <span class="status-text">Wallet Connected</span>
+                    </div>
+                </div>
+                
                 <div class="wallet-tabs">
                     <button class="wallet-tab active" onclick="switchWalletTab('deposit')">💰 Deposit</button>
                     <button class="wallet-tab" onclick="switchWalletTab('withdraw')">💸 Withdraw</button>

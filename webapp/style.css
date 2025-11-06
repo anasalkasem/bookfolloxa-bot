@@ -27,6 +27,71 @@ body {
     min-height: 100vh;
 }
 
+/* ===== CONNECT WALLET BUTTON ===== */
+.connect-wallet-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.connect-wallet-btn {
+    width: 100%;
+    max-width: 500px;
+    padding: 18px 30px;
+    background: linear-gradient(135deg, #5B9FED, #4A8FDD);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(91, 159, 237, 0.4);
+}
+
+.connect-wallet-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(91, 159, 237, 0.6);
+    background: linear-gradient(135deg, #6AAFFD, #5B9FED);
+}
+
+.connect-wallet-btn:active {
+    transform: translateY(0);
+}
+
+.connect-wallet-btn .wallet-icon {
+    font-size: 24px;
+}
+
+.connect-wallet-btn .wallet-text {
+    font-size: 18px;
+    letter-spacing: 0.5px;
+}
+
+.wallet-status {
+    margin-top: 15px;
+    padding: 12px 20px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 2px solid rgba(34, 197, 94, 0.3);
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #22C55E;
+    font-weight: 600;
+}
+
+.wallet-status .status-icon {
+    font-size: 20px;
+}
+
+.wallet-status.connected {
+    display: inline-flex !important;
+}
+
 /* ===== WATERMARK CONTAINER ===== */
 .watermark-container {
     position: fixed;
