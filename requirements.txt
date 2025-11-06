@@ -3,13 +3,6 @@ sqlalchemy==2.0.25
 psycopg2-binary==2.9.9
 APScheduler==3.10.4
 python-dotenv==1.0.0
-flask
-Pillow
-rembg
-onnxruntime
-aiogram-tonconnect
-pytonconnect
-telegram-wallet-pay
-python-telegram-bot[ext]
-telegram
-telegram-wallet-pay
+flask==3.0.0
+gunicorn==21.2.0
+Pillow==10.1.0

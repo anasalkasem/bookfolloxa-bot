@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: bookfolloxa-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 main:app
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookfolloxa-db
+          property: connectionString
+      - key: WALLET_PAY_TOKEN
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+databases:
+  - name: bookfolloxa-db
+    databaseName: bookfolloxa
+    user: bookfolloxa
