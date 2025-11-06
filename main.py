@@ -49,10 +49,10 @@ def get_main_menu_keyboard():
     
     logger.info(f"Using webapp URL: {webapp_url}")
     
-    # قائمة مبسطة - فقط زر اللعبة
+    # Simple menu - only game button
     keyboard = [
         [
-            InlineKeyboardButton("🎮 العب الآن - Play Now 🎮", web_app=WebAppInfo(url=webapp_url))
+            InlineKeyboardButton("🎮 Play Now 🎮", web_app=WebAppInfo(url=webapp_url))
         ]
     ]
     return InlineKeyboardMarkup(keyboard)
@@ -72,17 +72,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = f"""
 🎮 **Bookfolloxa - Influencer Empire** 🎮
 
-⚡️ مرحباً {user.first_name}! ⚡️
+⚡️ Welcome {user.first_name}! ⚡️
 
-🎯 **ابني إمبراطوريتك على السوشيال ميديا!**
+🎯 **Build Your Social Media Empire!**
 
-📱 انقر على الزر بالأسفل لبدء اللعبة
-💰 اجمع المتابعين و BFLX
-👥 وظّف المؤثرين وابنِ فريقك
-🏆 كن الأول في الترتيب العالمي!
+📱 Click the button below to start the game
+💰 Collect followers & BFLX
+👥 Hire influencers and build your team
+🏆 Be the first in the global ranking!
 
 ━━━━━━━━━━━━━━━━━━━━━━
-   ✨ اضغط العب الآن! ✨
+   ✨ Click Play Now! ✨
 ━━━━━━━━━━━━━━━━━━━━━━
 """
     

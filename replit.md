@@ -132,9 +132,10 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
   - Disabled music initialization and playback
   - Kept sound effects (tap, success, error) intact
   - Cleaner, distraction-free gaming experience
-- **✅ Menu Button Language Update:** Changed bot menu button to English
+- **✅ Bot Language Update:** Changed all bot text to English
   - Updated "🎮 العب الآن" to "🎮 Play Now"
-  - Maintains consistency with international user base
+  - All messages and buttons now in English
+  - Better international reach and consistency
 - **✅ Node.js Environment Setup:** Installed nodejs-20 for TON Connect dependencies
   - Created package.json in webapp directory
   - Installed 16 npm packages including @tonconnect/ui and dependencies
