@@ -1006,35 +1006,43 @@ def create_invoice():
         
         pkg = BFLX_PACKAGES[package_type]
         
-        async def create_invoice_link():
+        # Create invoice using bot API - run in separate thread to avoid event loop conflicts
+        import concurrent.futures
+        import threading
+        
+        def create_invoice_sync():
+            """Create invoice in a new thread with its own event loop"""
             try:
-                invoice_link = await telegram_app.bot.create_invoice_link(
-                    title=pkg['name'],
-                    description=f"احصل على {pkg['bflx']:,} BFLX",
-                    payload=f"{package_type}_{telegram_id}_{int(datetime.utcnow().timestamp())}",
-                    provider_token="",
-                    currency="XTR",
-                    prices=[LabeledPrice(label=pkg['name'], amount=pkg['stars'])]
-                )
-                return invoice_link
+                # Create new event loop for this thread
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                
+                try:
+                    result = new_loop.run_until_complete(
+                        telegram_app.bot.create_invoice_link(
+                            title=pkg['name'],
+                            description=f"احصل على {pkg['bflx']:,} BFLX",
+                            payload=f"{package_type}_{telegram_id}_{int(datetime.utcnow().timestamp())}",
+                            provider_token="",
+                            currency="XTR",
+                            prices=[LabeledPrice(label=pkg['name'], amount=pkg['stars'])]
+                        )
+                    )
+                    return result
+                finally:
+                    new_loop.close()
             except Exception as e:
-                logger.error(f"Error creating invoice: {e}", exc_info=True)
+                logger.error(f"Error in create_invoice_sync: {e}", exc_info=True)
                 return None
         
-        # Use existing event loop or create new one safely
+        # Execute in thread pool
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # If loop is running, use asyncio.run in thread
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(asyncio.run, create_invoice_link())
-                    invoice_link = future.result(timeout=10)
-            else:
-                invoice_link = loop.run_until_complete(create_invoice_link())
-        except RuntimeError:
-            # No event loop, create one
-            invoice_link = asyncio.run(create_invoice_link())
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(create_invoice_sync)
+                invoice_link = future.result(timeout=15)
+        except Exception as e:
+            logger.error(f"Error creating invoice: {e}", exc_info=True)
+            invoice_link = None
         
         if invoice_link:
             logger.info(f"✅ Invoice created for user {telegram_id}: {package_type} ({pkg['stars']} stars)")
