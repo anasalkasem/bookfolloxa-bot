@@ -589,24 +589,68 @@ function loadGameState() {
 }
 
 // ===== STORE & MONETIZATION =====
-function buyBFLX(package) {
+async function buyBFLX(packageType) {
     const packages = {
-        starter: { amount: 50000, price: 0.99 },
-        popular: { amount: 250000, price: 4.99 },
-        pro: { amount: 1000000, price: 14.99 },
-        ultimate: { amount: 5000000, price: 49.99 }
+        starter: { stars: 50, bflx: 2500, name: 'باقة المبتدئين' },
+        pro: { stars: 200, bflx: 10000, name: 'باقة المحترف' },
+        king: { stars: 800, bflx: 50000, name: 'باقة الملك' },
+        legend: { stars: 2000, bflx: 150000, name: 'باقة الأسطورة' }
     };
     
-    const pkg = packages[package];
-    showNotification(`💳 Opening payment for ${formatNumber(pkg.amount)} BFLX ($${pkg.price})...`, 'info');
+    const pkg = packages[packageType];
+    if (!pkg) {
+        showNotification('❌ Invalid package!', 'error');
+        return;
+    }
     
-    // Simulate purchase (in real app, use Telegram Payments API)
-    setTimeout(() => {
-        gameState.bflx += pkg.amount;
-        showNotification(`✅ Purchase successful! +${formatNumber(pkg.amount)} BFLX`, 'success');
-        updateUI();
-        saveGameState();
-    }, 1500);
+    showNotification(`💳 Opening payment for ${formatNumber(pkg.bflx)} BFLX (${pkg.stars} ⭐ Stars)...`, 'info');
+    
+    try {
+        const tg = window.Telegram?.WebApp;
+        if (!tg) {
+            showNotification('❌ Telegram WebApp not available', 'error');
+            return;
+        }
+        
+        const user = tg.initDataUnsafe?.user;
+        if (!user) {
+            showNotification('❌ User not found', 'error');
+            return;
+        }
+        
+        const response = await fetch('/api/create_invoice', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                telegram_id: user.id,
+                package: packageType
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.invoice_link) {
+            tg.openInvoice(data.invoice_link, (status) => {
+                if (status === 'paid') {
+                    gameState.bflx += pkg.bflx;
+                    showNotification(`✅ Payment successful! +${formatNumber(pkg.bflx)} BFLX`, 'success');
+                    updateUI();
+                    saveGameState();
+                } else if (status === 'cancelled') {
+                    showNotification('❌ Payment cancelled', 'error');
+                } else if (status === 'failed') {
+                    showNotification('❌ Payment failed', 'error');
+                }
+            });
+        } else {
+            showNotification('❌ Failed to create invoice', 'error');
+        }
+    } catch (error) {
+        console.error('Payment error:', error);
+        showNotification('❌ Payment error occurred', 'error');
+    }
 }
 
 function buyService(service) {
