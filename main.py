@@ -1365,7 +1365,7 @@ async def setup_webhook(application: Application) -> None:
         # Set Menu Button to open game directly
         webapp_url = 'https://raaik-hal-tastaie-anass111173.replit.app/webapp/'
         menu_button = MenuButtonWebApp(
-            text="🎮 العب الآن",
+            text="🎮 Play Now",
             web_app=WebAppInfo(url=webapp_url)
         )
         await application.bot.set_chat_menu_button(menu_button=menu_button)
