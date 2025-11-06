@@ -124,6 +124,24 @@ class Payment(Base):
     paid_at = Column(DateTime, nullable=True)
 
 
+class WalletTransaction(Base):
+    __tablename__ = 'wallet_transactions'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey('users.id'))
+    transaction_type = Column(String(20))  # 'deposit' or 'withdraw'
+    amount_bflx = Column(BigInteger)  # BFLX amount
+    amount_crypto = Column(Float)  # Crypto amount (USDT/TON)
+    currency = Column(String(10))  # 'USDT', 'TON', 'BTC'
+    wallet_address = Column(String(255), nullable=True)  # For withdrawals
+    order_id = Column(String(255), unique=True)  # Telegram Wallet Pay order ID
+    status = Column(String(50), default='pending')  # pending, completed, failed, cancelled
+    tx_hash = Column(String(255), nullable=True)  # Blockchain transaction hash
+    error_message = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+
+
 engine = create_engine(
     config.DATABASE_URL,
     pool_pre_ping=True,

@@ -7,3 +7,6 @@ flask
 Pillow
 rembg
 onnxruntime
+aiogram-tonconnect
+pytonconnect
+telegram
