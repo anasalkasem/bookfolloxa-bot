@@ -1,0 +1,15 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "## نظرة عامة لعبة Tap-to-Earn على تيليجرام بثيمة \"إمبراطورية المؤثرين\" على منصات التواصل الاجتماعي.",
+  "main": "api.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tonconnect/ui": "^2.3.1"
+  }
+}

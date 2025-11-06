@@ -29,6 +29,9 @@ let musicContext = null;
 let musicGain = null;
 let isPlaying = false;
 
+// ===== TON CONNECT =====
+let tonConnectUI = null;
+
 // ===== CONSTANTS =====
 const ENERGY_REGEN_RATE = 1;
 const ENERGY_REGEN_INTERVAL = 3000;
@@ -1458,9 +1461,8 @@ async function connectWallet() {
         const btn = document.getElementById('connectWalletBtn');
         const status = document.getElementById('walletStatus');
         
-        // Check if Telegram WebApp is available
-        if (!window.Telegram?.WebApp) {
-            showNotification('⚠️ Please open this in Telegram', 'error');
+        if (!tonConnectUI) {
+            showNotification('⚠️ TON Connect not initialized', 'error');
             return;
         }
         
@@ -1468,32 +1470,8 @@ async function connectWallet() {
         btn.innerHTML = '<span class="wallet-icon">⏳</span><span class="wallet-text">Connecting...</span>';
         btn.disabled = true;
         
-        // Simulate wallet connection (In production, integrate with TON Connect or Telegram Wallet)
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // For demo: Generate a fake wallet address
-        const fakeAddress = 'UQ' + Math.random().toString(36).substring(2, 15).toUpperCase();
-        
-        // Update game state
-        gameState.walletConnected = true;
-        gameState.walletAddress = fakeAddress;
-        saveGameState();
-        
-        // Update UI
-        btn.style.display = 'none';
-        status.style.display = 'inline-flex';
-        status.classList.add('connected');
-        status.innerHTML = `
-            <span class="status-icon">✅</span>
-            <span class="status-text">Connected: ${fakeAddress.substring(0, 8)}...${fakeAddress.substring(fakeAddress.length - 6)}</span>
-        `;
-        
-        showNotification('✅ Wallet connected successfully!', 'success');
-        
-        // Save to backend
-        if (typeof saveToBackend === 'function') {
-            await saveToBackend();
-        }
+        // Open TON Connect modal
+        await tonConnectUI.openModal();
         
     } catch (error) {
         console.error('Wallet connection error:', error);
@@ -1506,18 +1484,102 @@ async function connectWallet() {
     }
 }
 
-function checkWalletStatus() {
+async function disconnectWallet() {
+    try {
+        if (tonConnectUI) {
+            await tonConnectUI.disconnect();
+        }
+        
+        // Update game state
+        gameState.walletConnected = false;
+        gameState.walletAddress = null;
+        saveGameState();
+        
+        // Update UI
+        const btn = document.getElementById('connectWalletBtn');
+        const status = document.getElementById('walletStatus');
+        
+        btn.style.display = 'inline-flex';
+        btn.innerHTML = '<span class="wallet-icon">💼</span><span class="wallet-text">Connect your wallet</span>';
+        btn.disabled = false;
+        status.style.display = 'none';
+        status.classList.remove('connected');
+        
+        showNotification('🔌 Wallet disconnected', 'info');
+        
+    } catch (error) {
+        console.error('Disconnect error:', error);
+    }
+}
+
+function onWalletStatusChange(wallet) {
     const btn = document.getElementById('connectWalletBtn');
     const status = document.getElementById('walletStatus');
     
-    if (gameState.walletConnected && gameState.walletAddress) {
+    if (wallet) {
+        // Wallet connected
+        const address = wallet.account.address;
+        const shortAddress = address.substring(0, 4) + '...' + address.substring(address.length - 4);
+        
+        // Update game state
+        gameState.walletConnected = true;
+        gameState.walletAddress = address;
+        saveGameState();
+        
+        // Update UI
         btn.style.display = 'none';
         status.style.display = 'inline-flex';
         status.classList.add('connected');
         status.innerHTML = `
             <span class="status-icon">✅</span>
-            <span class="status-text">Connected: ${gameState.walletAddress.substring(0, 8)}...${gameState.walletAddress.substring(gameState.walletAddress.length - 6)}</span>
+            <span class="status-text">Connected: ${shortAddress}</span>
+            <button onclick="disconnectWallet()" style="margin-left: 10px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #EF4444; padding: 4px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;">Disconnect</button>
         `;
+        
+        showNotification('✅ Wallet connected successfully!', 'success');
+        
+        // Save to backend
+        if (typeof saveToBackend === 'function') {
+            saveToBackend();
+        }
+        
+    } else {
+        // Wallet disconnected
+        btn.style.display = 'inline-flex';
+        btn.innerHTML = '<span class="wallet-icon">💼</span><span class="wallet-text">Connect your wallet</span>';
+        btn.disabled = false;
+        status.style.display = 'none';
+        status.classList.remove('connected');
+        
+        gameState.walletConnected = false;
+        gameState.walletAddress = null;
+        saveGameState();
+    }
+}
+
+function initTonConnect() {
+    try {
+        // Initialize TON Connect UI
+        const manifestUrl = window.location.origin + '/webapp/tonconnect-manifest.json';
+        
+        tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: manifestUrl,
+            buttonRootId: null
+        });
+        
+        // Listen to wallet status changes
+        tonConnectUI.onStatusChange(onWalletStatusChange);
+        
+        console.log('✅ TON Connect initialized');
+        
+        // Check current wallet status
+        const currentWallet = tonConnectUI.wallet;
+        if (currentWallet) {
+            onWalletStatusChange(currentWallet);
+        }
+        
+    } catch (error) {
+        console.error('TON Connect initialization error:', error);
     }
 }
 
@@ -1527,6 +1589,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load from localStorage first
     loadGameState();
+    
+    // Initialize TON Connect
+    initTonConnect();
     
     // Then init backend integration (will override with server data if available)
     if (typeof initBackendIntegration === 'function') {
@@ -1540,7 +1605,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderTasks();
     renderReferralPage();
     renderMorePage();
-    checkWalletStatus();
     
     // Start game loops
     setInterval(regenerateEnergy, ENERGY_REGEN_INTERVAL);

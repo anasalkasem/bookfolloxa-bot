@@ -59,7 +59,30 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Code Organization:** Modular structure with `main.py` (bot and Flask server), `models.py` (DB models), `game_logic.py`, `config.py`, `requirements.txt`, `webapp/` for WebApp, and `.env` for environment variables.
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
-**Recent Changes (November 2025):**
+**Recent Changes (November 06, 2025):**
+- **✅ TON Connect Integration - REAL WALLET CONNECTION:** Implemented authentic wallet integration
+  - Installed @tonconnect/ui library for TON blockchain wallet connections
+  - Created tonconnect-manifest.json for app identity and configuration
+  - Replaced demo wallet connection with real TON Connect protocol
+  - Users can now connect real wallets: Tonkeeper, MyTonWallet, Telegram Wallet, Trust Wallet
+  - Added wallet disconnect functionality with visual feedback
+  - Auto-reconnection on page reload if wallet was previously connected
+  - Secure end-to-end encrypted communication with wallets
+  - Real wallet addresses displayed in shortened format (e.g., UQab...xyz4)
+  - Game state now persists actual wallet address for future transaction features
+- **✅ Background Music Removed:** Completely removed oriental/oud background music per user request
+  - Removed music toggle button from UI
+  - Disabled music initialization and playback
+  - Kept sound effects (tap, success, error) intact
+  - Cleaner, distraction-free gaming experience
+- **✅ Menu Button Language Update:** Changed bot menu button to English
+  - Updated "🎮 العب الآن" to "🎮 Play Now"
+  - Maintains consistency with international user base
+- **✅ Node.js Environment Setup:** Installed nodejs-20 for TON Connect dependencies
+  - Created package.json in webapp directory
+  - Installed 16 npm packages including @tonconnect/ui and dependencies
+
+**Recent Changes (Earlier November 2025):**
 - **✅ Payment System Reliability Fix (Latest):** Improved payment flow for better stability
   - **Enhanced Error Handling:** Better error messages and logging in payment endpoints
   - **Sync Mechanism:** Payment confirmation now syncs with backend before showing success
