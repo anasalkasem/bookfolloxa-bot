@@ -104,6 +104,9 @@ function updateCharacter() {
         character.src = 'assets/character-male.png';
         if (avatarImg) avatarImg.src = 'assets/character-male.png';
     }
+    
+    // Ensure size is applied after character image change
+    updateCharacterSize();
 }
 
 // ===== CHARACTER SIZE BASED ON LEVEL =====
@@ -196,6 +199,7 @@ function checkLevelUp() {
 function changeCharacter(gender) {
     gameState.userGender = gender;
     updateCharacter();
+    updateCharacterSize(); // Apply size scaling to new character
     updateGenderButtons();
     saveGameState();
     
