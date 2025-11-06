@@ -1122,6 +1122,9 @@ async def setup_webhook(application: Application) -> None:
     """Setup webhook with Telegram"""
     import asyncio
     try:
+        # Initialize application first
+        await application.initialize()
+        
         webhook_url = get_webhook_url()
         logger.info(f"Setting up webhook: {webhook_url}")
         
