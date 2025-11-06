@@ -340,17 +340,36 @@ function renderTasks(category) {
         btn.onclick = () => renderTasks(btn.dataset.tab);
     });
     
-    list.innerHTML = tasks.map(task => `
-        <div class="task-card ${task.completed ? 'completed' : ''}">
-            <div class="task-info">
-                <div class="task-title">${task.title}</div>
-                ${task.target ? `<div class="task-progress">${task.progress || 0} / ${task.target}</div>` : ''}
-            </div>
-            <div class="task-reward">
-                ${task.completed ? '✅' : `💎 ${formatNumber(task.reward)}`}
-            </div>
-        </div>
-    `).join('');
+    // Clear existing tasks (safe DOM manipulation)
+    list.innerHTML = '';
+    
+    tasks.forEach(task => {
+        const card = document.createElement('div');
+        card.className = `task-card ${task.completed ? 'completed' : ''}`;
+        
+        const info = document.createElement('div');
+        info.className = 'task-info';
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'task-title';
+        titleDiv.textContent = task.title; // Safe: uses textContent instead of innerHTML
+        info.appendChild(titleDiv);
+        
+        if (task.target) {
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'task-progress';
+            progressDiv.textContent = `${task.progress || 0} / ${task.target}`;
+            info.appendChild(progressDiv);
+        }
+        
+        const reward = document.createElement('div');
+        reward.className = 'task-reward';
+        reward.textContent = task.completed ? '✅' : `💎 ${formatNumber(task.reward)}`;
+        
+        card.appendChild(info);
+        card.appendChild(reward);
+        list.appendChild(card);
+    });
 }
 
 function updateTaskProgress(taskId, amount) {
