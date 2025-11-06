@@ -94,6 +94,17 @@ function updateCharacter() {
     }
 }
 
+function changeCharacter(gender) {
+    gameState.userGender = gender;
+    updateCharacter();
+    updateGenderButtons();
+    saveGameState();
+    
+    playSound('success');
+    triggerHaptic('light');
+    showNotification(`✨ Character changed to ${gender === 'male' ? '♂️ Male' : '♀️ Female'}!`, 'success');
+}
+
 // ===== OFFLINE EARNINGS =====
 function calculateOfflineEarnings() {
     const now = Date.now();
@@ -152,26 +163,36 @@ function handleCharacterTap(e) {
     if (gameState.energy < gameState.tapPower) {
         showNotification('⚡ Not enough energy!', 'error');
         shakeCharacter();
+        playSound('error');
+        triggerHaptic('error');
         return;
     }
     
+    // Critical hit chance (10%)
+    const isCritical = Math.random() < 0.1;
+    const multiplier = isCritical ? 10 : 1;
+    const earnedBFLX = gameState.tapPower * multiplier;
+    
     // Update game state
-    gameState.bflx += gameState.tapPower;
-    gameState.followers += gameState.tapPower;
+    gameState.bflx += earnedBFLX;
+    gameState.followers += earnedBFLX;
     gameState.energy -= gameState.tapPower;
     
     // Visual effects
-    animateCharacter();
-    createFloatingNumber(gameState.tapPower, e);
-    createParticles(e);
-    
-    // Haptic feedback
-    if (gameState.settings.vibration && window.navigator.vibrate) {
-        window.navigator.vibrate(10);
+    if (isCritical) {
+        animateCriticalHit();
+        createFloatingNumber(earnedBFLX, e, true);
+        createCriticalParticles(e);
+        playSound('critical');
+        triggerHaptic('critical');
+        showNotification('🔥 CRITICAL HIT! ×10 BFLX!', 'success');
+    } else {
+        animateCharacter();
+        createFloatingNumber(earnedBFLX, e, false);
+        createParticles(e);
+        playSound('tap');
+        triggerHaptic('light');
     }
-    
-    // Sound effect (you can add actual sound file)
-    playSound('tap');
     
     // Update UI
     updateUI();
@@ -188,6 +209,14 @@ function animateCharacter() {
     }, 300);
 }
 
+function animateCriticalHit() {
+    const character = document.getElementById('mainCharacter');
+    character.classList.add('critical-hit');
+    setTimeout(() => {
+        character.classList.remove('critical-hit');
+    }, 600);
+}
+
 function shakeCharacter() {
     const character = document.getElementById('mainCharacter');
     character.classList.add('shake');
@@ -196,12 +225,84 @@ function shakeCharacter() {
     }, 500);
 }
 
+// ===== HAPTIC FEEDBACK =====
+function triggerHaptic(type) {
+    if (!gameState.settings.vibration) return;
+    
+    // Use Telegram WebApp haptic feedback if available
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        const haptic = window.Telegram.WebApp.HapticFeedback;
+        
+        switch(type) {
+            case 'light':
+                haptic.impactOccurred('light');
+                break;
+            case 'medium':
+                haptic.impactOccurred('medium');
+                break;
+            case 'heavy':
+                haptic.impactOccurred('heavy');
+                break;
+            case 'critical':
+                haptic.notificationOccurred('success');
+                break;
+            case 'error':
+                haptic.notificationOccurred('error');
+                break;
+            case 'success':
+                haptic.notificationOccurred('success');
+                break;
+        }
+    } 
+    // Fallback to navigator.vibrate
+    else if (window.navigator.vibrate) {
+        switch(type) {
+            case 'light':
+                window.navigator.vibrate(10);
+                break;
+            case 'medium':
+                window.navigator.vibrate(20);
+                break;
+            case 'heavy':
+                window.navigator.vibrate(30);
+                break;
+            case 'critical':
+                window.navigator.vibrate([30, 50, 30]);
+                break;
+            case 'error':
+                window.navigator.vibrate([50, 100]);
+                break;
+            case 'success':
+                window.navigator.vibrate([20, 50, 20]);
+                break;
+        }
+    }
+}
+
 // ===== VISUAL EFFECTS =====
-function createFloatingNumber(value, event) {
+function createFloatingNumber(value, event, isCritical = false) {
     const container = document.getElementById('floatingNumbers');
     const floatNum = document.createElement('div');
     floatNum.className = 'float-number';
-    floatNum.textContent = `+${formatNumber(value)}`;
+    
+    if (isCritical) {
+        floatNum.className += ' critical-number';
+        floatNum.textContent = `🔥 +${formatNumber(value)} ×10`;
+        floatNum.style.fontSize = '42px';
+        floatNum.style.fontWeight = 'bold';
+        floatNum.style.background = 'linear-gradient(135deg, #ff0000, #ffaa00, #ff0000)';
+        floatNum.style.webkitBackgroundClip = 'text';
+        floatNum.style.webkitTextFillColor = 'transparent';
+        floatNum.style.backgroundClip = 'text';
+        floatNum.style.textShadow = '0 0 20px rgba(255, 100, 0, 0.8)';
+    } else {
+        floatNum.textContent = `+${formatNumber(value)}`;
+        floatNum.style.fontSize = '32px';
+        floatNum.style.background = 'linear-gradient(135deg, #ff6b9d, #7c3aed)';
+        floatNum.style.webkitBackgroundClip = 'text';
+        floatNum.style.webkitTextFillColor = 'transparent';
+        floatNum.style.backgroundClip = 'text';
+    }
     
     // Position
     const rect = event.target.getBoundingClientRect();
@@ -210,10 +311,6 @@ function createFloatingNumber(value, event) {
     
     floatNum.style.left = `${x - rect.left}px`;
     floatNum.style.top = `${y - rect.top}px`;
-    floatNum.style.background = 'linear-gradient(135deg, #ff6b9d, #7c3aed)';
-    floatNum.style.webkitBackgroundClip = 'text';
-    floatNum.style.webkitTextFillColor = 'transparent';
-    floatNum.style.backgroundClip = 'text';
     
     container.appendChild(floatNum);
     
@@ -228,7 +325,7 @@ function createParticles(event) {
         const particle = document.createElement('div');
         particle.className = 'float-number';
         particle.textContent = particles[Math.floor(Math.random() * particles.length)];
-        particle.style.fontSize = '28px';
+        particle.style.fontSize = '24px';
         
         const rect = event.target.getBoundingClientRect();
         const centerX = rect.width / 2;
@@ -236,6 +333,35 @@ function createParticles(event) {
         
         const angle = (Math.PI * 2 * i) / 6;
         const distance = 60;
+        const x = centerX + Math.cos(angle) * distance;
+        const y = centerY + Math.sin(angle) * distance;
+        
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+        
+        container.appendChild(particle);
+        
+        setTimeout(() => particle.remove(), 1500);
+    }
+}
+
+function createCriticalParticles(event) {
+    const particles = ['🔥', '💥', '⚡', '✨', '💫', '🌟', '💯', '🎯'];
+    const container = document.getElementById('floatingNumbers');
+    
+    // Create more particles for critical hit (12 instead of 6)
+    for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'float-number critical-particle';
+        particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+        particle.style.fontSize = '32px';
+        
+        const rect = event.target.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const angle = (Math.PI * 2 * i) / 12;
+        const distance = 80 + Math.random() * 40;
         const x = centerX + Math.cos(angle) * distance;
         const y = centerY + Math.sin(angle) * distance;
         
@@ -557,12 +683,63 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// ===== SOUND SYSTEM (Using Web Audio API) =====
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
 function playSound(type) {
     if (!gameState.settings.sound) return;
     
-    // You can add actual sound files here
-    // const audio = new Audio(`sounds/${type}.mp3`);
-    // audio.play();
+    try {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        switch(type) {
+            case 'tap':
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+                break;
+                
+            case 'critical':
+                oscillator.frequency.value = 1200;
+                gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.15);
+                break;
+                
+            case 'purchase':
+                oscillator.frequency.value = 600;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+                
+            case 'success':
+                oscillator.frequency.value = 900;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+                break;
+                
+            case 'error':
+                oscillator.frequency.value = 200;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.15);
+                break;
+        }
+    } catch (err) {
+        console.warn('Sound playback error:', err);
+    }
 }
 
 // ===== SAVE/LOAD =====
@@ -584,8 +761,18 @@ function loadGameState() {
         Object.assign(gameState, JSON.parse(saved));
         updateCharacter();
         updateUI();
+        updateGenderButtons();
         console.log('💾 Game loaded!');
     }
+}
+
+function updateGenderButtons() {
+    document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.gender === gameState.userGender) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 // ===== STORE & MONETIZATION =====
