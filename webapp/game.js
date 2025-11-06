@@ -87,10 +87,14 @@ function initGame() {
 
 function updateCharacter() {
     const character = document.getElementById('mainCharacter');
+    const avatarImg = document.querySelector('.avatar-img');
+    
     if (gameState.userGender === 'female') {
         character.src = 'assets/character-female.png';
+        if (avatarImg) avatarImg.src = 'assets/character-female.png';
     } else {
         character.src = 'assets/character-male.png';
+        if (avatarImg) avatarImg.src = 'assets/character-male.png';
     }
 }
 

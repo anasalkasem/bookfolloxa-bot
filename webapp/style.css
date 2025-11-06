@@ -143,7 +143,7 @@ body {
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    background: var(--bg-primary);
+    background: linear-gradient(135deg, #1a1f3a, #0a0e27);
 }
 
 .level-badge {
