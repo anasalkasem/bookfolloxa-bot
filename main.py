@@ -4,7 +4,7 @@ from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, LabeledPrice
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, PreCheckoutQueryHandler, MessageHandler, filters
 from sqlalchemy.orm import Session
-from models import User, MysteryBox, Payment, get_db, init_db
+from models import User, MysteryBox, Payment, WalletTransaction, get_db, init_db
 import game_logic
 import config
 from flask import Flask, send_from_directory
@@ -1084,6 +1084,218 @@ def get_leaderboard():
     except Exception as e:
         logger.error(f"Error getting leaderboard: {e}")
         return jsonify({'error': str(e)}), 500
+
+# ===== WALLET SYSTEM =====
+@app.route('/api/wallet/withdraw', methods=['POST'])
+def wallet_withdraw():
+    """طلب سحب BFLX إلى محفظة Telegram"""
+    from flask import jsonify, request
+    from uuid import uuid4
+    import concurrent.futures
+    
+    try:
+        init_data = request.headers.get('X-Telegram-Init-Data') or request.json.get('_auth')
+        if not init_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from webapp.telegram_auth import validate_telegram_webapp_data
+        user_data = validate_telegram_webapp_data(init_data, config.TELEGRAM_BOT_TOKEN)
+        
+        if not user_data:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.json
+        telegram_id = data.get('telegram_id')
+        amount_bflx = int(data.get('amount_bflx', 0))
+        currency = data.get('currency', 'USDT')  # USDT, TON, BTC
+        
+        if user_data.get('id') != telegram_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Minimum withdrawal: 10,000 BFLX
+        if amount_bflx < 10000:
+            return jsonify({'error': 'Minimum withdrawal is 10,000 BFLX'}), 400
+        
+        db = get_db()
+        user = db.query(User).filter(User.id == telegram_id).first()
+        
+        if not user or user.balance < amount_bflx:
+            return jsonify({'error': 'Insufficient balance'}), 400
+        
+        # Conversion rate: 1000 BFLX = 1 USDT/TON
+        amount_crypto = amount_bflx / 1000.0
+        
+        # Create withdrawal transaction
+        transaction = WalletTransaction(
+            user_id=telegram_id,
+            transaction_type='withdraw',
+            amount_bflx=amount_bflx,
+            amount_crypto=amount_crypto,
+            currency=currency,
+            order_id=f"WITHDRAW_{uuid4().hex}",
+            status='pending'
+        )
+        
+        # Deduct BFLX from balance
+        user.balance -= amount_bflx
+        
+        db.add(transaction)
+        db.commit()
+        
+        logger.info(f"✅ Withdrawal request created: User {telegram_id}, {amount_bflx} BFLX → {amount_crypto} {currency}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Withdrawal request submitted',
+            'transaction_id': transaction.id,
+            'amount_bflx': amount_bflx,
+            'amount_crypto': amount_crypto,
+            'currency': currency,
+            'status': 'pending'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error in wallet_withdraw: {e}", exc_info=True)
+        return jsonify({'error': 'Server error'}), 500
+
+@app.route('/api/wallet/deposit', methods=['POST'])
+def wallet_deposit():
+    """إيداع Crypto للحصول على BFLX"""
+    from flask import jsonify, request
+    from uuid import uuid4
+    import concurrent.futures
+    
+    try:
+        if not config.WALLET_PAY_TOKEN:
+            return jsonify({'error': 'Wallet Pay not configured'}), 503
+        
+        init_data = request.headers.get('X-Telegram-Init-Data') or request.json.get('_auth')
+        if not init_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from webapp.telegram_auth import validate_telegram_webapp_data
+        user_data = validate_telegram_webapp_data(init_data, config.TELEGRAM_BOT_TOKEN)
+        
+        if not user_data:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.json
+        telegram_id = data.get('telegram_id')
+        amount_crypto = float(data.get('amount_crypto', 0))
+        currency = data.get('currency', 'USDT')
+        
+        if user_data.get('id') != telegram_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Minimum deposit: 1 USDT/TON
+        if amount_crypto < 1:
+            return jsonify({'error': 'Minimum deposit is 1 USDT/TON'}), 400
+        
+        # Conversion: 1 USDT/TON = 1000 BFLX
+        amount_bflx = int(amount_crypto * 1000)
+        
+        # Create deposit order with Telegram Wallet Pay
+        from telegram_wallet_pay import TelegramWalletPay
+        
+        def create_wallet_order():
+            """Create Telegram Wallet Pay order in separate thread"""
+            import asyncio
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            
+            try:
+                wallet = TelegramWalletPay(config.WALLET_PAY_TOKEN)
+                order_id = f"DEPOSIT_{uuid4().hex[:16]}"
+                
+                result = new_loop.run_until_complete(
+                    wallet.create_order(
+                        amount=amount_crypto,
+                        currency_code="USD" if currency == "USDT" else "EUR",
+                        description=f"Deposit {amount_bflx:,} BFLX",
+                        external_id=order_id,
+                        timeout_seconds=30 * 60,
+                        customer_telegram_user_id=telegram_id
+                    )
+                )
+                
+                new_loop.run_until_complete(wallet.close())
+                return order_id, result.data
+            except Exception as e:
+                logger.error(f"Error creating wallet order: {e}", exc_info=True)
+                return None, None
+            finally:
+                new_loop.close()
+        
+        # Execute in thread
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(create_wallet_order)
+            order_id, payment_link = future.result(timeout=15)
+        
+        if not payment_link:
+            return jsonify({'error': 'Failed to create payment order'}), 500
+        
+        # Create transaction record
+        db = get_db()
+        transaction = WalletTransaction(
+            user_id=telegram_id,
+            transaction_type='deposit',
+            amount_bflx=amount_bflx,
+            amount_crypto=amount_crypto,
+            currency=currency,
+            order_id=order_id,
+            status='pending'
+        )
+        db.add(transaction)
+        db.commit()
+        
+        logger.info(f"✅ Deposit order created: User {telegram_id}, {amount_crypto} {currency} → {amount_bflx} BFLX")
+        
+        return jsonify({
+            'success': True,
+            'payment_link': payment_link,
+            'order_id': order_id,
+            'amount_crypto': amount_crypto,
+            'amount_bflx': amount_bflx,
+            'currency': currency
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error in wallet_deposit: {e}", exc_info=True)
+        return jsonify({'error': 'Server error'}), 500
+
+@app.route('/api/wallet/transactions', methods=['GET'])
+def wallet_transactions():
+    """عرض سجل معاملات المحفظة"""
+    from flask import jsonify, request
+    
+    try:
+        telegram_id = request.args.get('telegram_id', type=int)
+        if not telegram_id:
+            return jsonify({'error': 'Missing telegram_id'}), 400
+        
+        db = get_db()
+        transactions = db.query(WalletTransaction).filter(
+            WalletTransaction.user_id == telegram_id
+        ).order_by(WalletTransaction.created_at.desc()).limit(50).all()
+        
+        result = []
+        for tx in transactions:
+            result.append({
+                'id': tx.id,
+                'type': tx.transaction_type,
+                'amount_bflx': tx.amount_bflx,
+                'amount_crypto': tx.amount_crypto,
+                'currency': tx.currency,
+                'status': tx.status,
+                'created_at': tx.created_at.isoformat(),
+                'completed_at': tx.completed_at.isoformat() if tx.completed_at else None
+            })
+        
+        return jsonify({'transactions': result}), 200
+        
+    except Exception as e:
+        logger.error(f"Error in wallet_transactions: {e}")
+        return jsonify({'error': 'Server error'}), 500
 
 telegram_app = None
 

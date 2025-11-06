@@ -5,6 +5,7 @@ load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
 DATABASE_URL = os.getenv('DATABASE_URL', '')
+WALLET_PAY_TOKEN = os.getenv('WALLET_PAY_TOKEN', '')  # Telegram Wallet Pay API Token
 
 INITIAL_ENERGY = 1000
 ENERGY_REGEN_RATE = 1
