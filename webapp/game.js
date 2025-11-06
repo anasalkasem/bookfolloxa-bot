@@ -2,6 +2,7 @@
 const gameState = {
     bflx: 1000,
     followers: 0,
+    totalEarned: 1000, // Total BFLX earned (never decreases)
     energy: 1000,
     maxEnergy: 1000,
     tapPower: 5,
@@ -184,6 +185,7 @@ function checkLevelUp() {
         // Reward player for leveling up
         const levelUpBonus = gameState.level * 1000;
         gameState.bflx += levelUpBonus;
+        gameState.totalEarned += levelUpBonus;
         
         // Show level up notification
         const levelTitle = getLevelTitle(gameState.level);
@@ -230,6 +232,7 @@ function calculateOfflineEarnings() {
         if (offlineEarnings > 0) {
             gameState.bflx += offlineEarnings;
             gameState.followers += offlineEarnings;
+            gameState.totalEarned += offlineEarnings;
             checkLevelUp();
             showNotification(`⛏️ Welcome back! You earned ${formatNumber(offlineEarnings)} BFLX while offline!`, 'success');
         }
@@ -308,6 +311,7 @@ function handleCharacterTap(e) {
     // Update game state
     gameState.bflx += earnedBFLX;
     gameState.followers += earnedBFLX;
+    gameState.totalEarned += earnedBFLX;
     gameState.energy -= gameState.tapPower;
     
     // Visual effects
@@ -672,6 +676,7 @@ function updateTaskProgress(taskId, amount) {
 function completeTask(task) {
     task.completed = true;
     gameState.bflx += task.reward;
+    gameState.totalEarned += task.reward;
     checkLevelUp();
     showNotification(`🎉 Task completed! +${formatNumber(task.reward)} BFLX`, 'success');
     updateUI();
@@ -775,6 +780,7 @@ function updateMining() {
         // Add to balance and followers
         gameState.bflx += earningsPerSecond;
         gameState.followers += earningsPerSecond;
+        gameState.totalEarned += earningsPerSecond;
         
         // Check for level up
         checkLevelUp();
@@ -799,6 +805,10 @@ function updateUI() {
     
     // Mining income
     document.getElementById('incomePerHour').textContent = formatNumber(gameState.miningPerHour);
+    
+    // Home mini stats
+    document.getElementById('miniBalance').textContent = formatNumber(gameState.bflx);
+    document.getElementById('miniTotalEarned').textContent = formatNumber(gameState.totalEarned);
     
     // Energy
     const energyPercent = (gameState.energy / gameState.maxEnergy) * 100;
@@ -1015,6 +1025,7 @@ async function buyBFLX(packageType) {
                     } else {
                         // Fallback: add locally and sync later
                         gameState.bflx += pkg.bflx;
+                        gameState.totalEarned += pkg.bflx;
                         checkLevelUp();
                         showNotification(`✅ Payment successful! +${formatNumber(pkg.bflx)} BFLX`, 'success');
                         updateUI();
@@ -1074,6 +1085,7 @@ function watchAd() {
     // Simulate ad watch (in real app, use actual ad SDK)
     setTimeout(() => {
         gameState.bflx += 500;
+        gameState.totalEarned += 500;
         gameState.lastAdWatch = now;
         checkLevelUp();
         showNotification('✅ Ad completed! +500 BFLX', 'success');
@@ -1409,6 +1421,7 @@ function claimDailyReward() {
     // Add reward
     gameState.bflx += reward;
     gameState.followers += reward;
+    gameState.totalEarned += reward;
     checkLevelUp();
     
     // Visual effects
@@ -1425,6 +1438,19 @@ function claimDailyReward() {
     if (typeof saveToBackend === 'function') {
         saveToBackend();
     }
+}
+
+// ===== STATISTICS PAGE =====
+function renderStatistics() {
+    document.getElementById('statsCurrentBalance').textContent = formatNumber(gameState.bflx);
+    document.getElementById('statsTotalEarned').textContent = formatNumber(gameState.totalEarned);
+    document.getElementById('statsLevel').textContent = gameState.level;
+    document.getElementById('statsLevelTitle').textContent = getLevelTitle(gameState.level);
+    document.getElementById('statsFollowers').textContent = formatNumber(gameState.followers);
+    document.getElementById('statsTapPower').textContent = gameState.tapPower;
+    document.getElementById('statsMaxEnergy').textContent = gameState.maxEnergy;
+    document.getElementById('statsMining').textContent = formatNumber(gameState.miningPerHour);
+    document.getElementById('statsInfluencers').textContent = gameState.influencers.length;
 }
 
 // ===== HELPER: SHOW PAGE =====
@@ -1446,6 +1472,8 @@ function showPage(pageName) {
             renderLeaderboard();
         } else if (pageName === 'daily') {
             renderDailyRewards();
+        } else if (pageName === 'statistics') {
+            renderStatistics();
         }
     }
 }

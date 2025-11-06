@@ -88,6 +88,23 @@
                     <span id="incomePerHour">0</span>
                 </div>
             </div>
+            
+            <div class="home-stats-mini">
+                <div class="mini-stat">
+                    <div class="mini-stat-icon">💰</div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-label">Balance</div>
+                        <div class="mini-stat-value" id="miniBalance">1.0K</div>
+                    </div>
+                </div>
+                <div class="mini-stat highlight">
+                    <div class="mini-stat-icon">🎯</div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-label">Total Earned</div>
+                        <div class="mini-stat-value" id="miniTotalEarned">1.0K</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- INFLUENCERS PAGE -->
@@ -285,10 +302,81 @@
             </button>
         </div>
 
+        <!-- STATISTICS PAGE -->
+        <div class="page" id="statisticsPage">
+            <h2 class="page-title">📊 Your Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-box main-stat">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Current Balance</div>
+                        <div class="stat-big-value" id="statsCurrentBalance">0</div>
+                        <div class="stat-sublabel">BFLX</div>
+                    </div>
+                </div>
+                <div class="stat-box main-stat">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Earned</div>
+                        <div class="stat-big-value" id="statsTotalEarned">0</div>
+                        <div class="stat-sublabel">BFLX All-Time</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value" id="statsLevel">1</div>
+                        <div class="stat-sublabel" id="statsLevelTitle">Beginner</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Followers</div>
+                        <div class="stat-value" id="statsFollowers">0</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Tap Power</div>
+                        <div class="stat-value"><span id="statsTapPower">5</span> BFLX</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">🔋</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Max Energy</div>
+                        <div class="stat-value" id="statsMaxEnergy">1000</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">⛏️</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Auto-Mining</div>
+                        <div class="stat-value"><span id="statsMining">0</span>/hour</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon">👔</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Influencers</div>
+                        <div class="stat-value" id="statsInfluencers">0</div>
+                    </div>
+                </div>
+            </div>
+            <button class="back-btn" onclick="showPage('more')">← Back to Settings</button>
+        </div>
+
         <!-- MORE PAGE -->
         <div class="page" id="morePage">
             <h2 class="page-title">⚙️ Settings & More</h2>
             <div class="settings-list">
+                <div class="setting-item clickable" onclick="showPage('statistics')">
+                    <span>📊 Your Statistics</span>
+                    <span>→</span>
+                </div>
                 <div class="setting-item clickable" onclick="showPage('store')">
                     <span>💎 Store & Wallet</span>
                     <span>→</span>

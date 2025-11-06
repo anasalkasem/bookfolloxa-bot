@@ -65,6 +65,18 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
 **Recent Changes (November 06, 2025 - Latest Update):**
+- **✅ Statistics & Balance Tracking System:** Comprehensive tracking and display
+  - Added totalEarned field to track lifetime BFLX earnings (never decreases)
+  - All BFLX-earning actions now update totalEarned: taps, mining, tasks, level-ups, payments, ads, rewards
+  - New Statistics Page (accessible from More menu) showing:
+    * Current Balance vs Total Earned comparison
+    * Level, Followers, Tap Power, Max Energy
+    * Auto-Mining rate and Influencers count
+    * Professional glassmorphism design with gradient highlights
+  - Added mini-stats cards on home page displaying Balance and Total Earned for quick reference
+  - Clear differentiation between current balance (can decrease) and lifetime earnings (always increases)
+
+**Recent Changes (November 06, 2025 - Previous Update):**
 - **✅ Enhanced Influencers Page:** Improved clarity and user experience
   - Added "Requires Level X" badges for locked influencers
   - Color-coded buttons: Red for level-locked, Gray for insufficient funds, Purple/Cyan when available
@@ -73,7 +85,7 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
   - New vertical card layout for better information display
   - Clear visual feedback for why influencer cannot be hired
 
-**Recent Changes (November 06, 2025 - Previous Update):**
+**Recent Changes (November 06, 2025 - Earlier):**
 - **✅ Enhanced Header UI:** Improved header design for better clarity
   - Stat cards (BFLX/Followers) now have circular gradient backgrounds with purple/cyan theme
   - Removed white backgrounds, replaced with glassmorphism design

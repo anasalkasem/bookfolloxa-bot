@@ -618,6 +618,71 @@ body {
     font-size: 32px;
 }
 
+/* ===== HOME MINI STATS ===== */
+.home-stats-mini {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 0 auto 20px;
+    max-width: 400px;
+    padding: 0 20px;
+}
+
+.mini-stat {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.mini-stat.highlight {
+    background: linear-gradient(135deg, rgba(110, 142, 251, 0.15), rgba(167, 119, 227, 0.15));
+    border: 1px solid rgba(110, 142, 251, 0.3);
+}
+
+.mini-stat:active {
+    transform: scale(0.98);
+}
+
+.mini-stat-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.mini-stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.mini-stat-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mini-stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mini-stat.highlight .mini-stat-value {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* ===== ENERGY SECTION ===== */
 .energy-section {
     position: fixed;
@@ -1049,6 +1114,101 @@ body {
 
 .setting-item.clickable {
     cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.setting-item.clickable:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* ===== STATISTICS PAGE ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.stat-box.main-stat {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(110, 142, 251, 0.15), rgba(167, 119, 227, 0.15));
+    border: 1px solid rgba(110, 142, 251, 0.3);
+}
+
+.stat-box:active {
+    transform: scale(0.98);
+}
+
+.stat-icon {
+    font-size: 32px;
+    margin-bottom: 4px;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+}
+
+.stat-big-value {
+    font-size: 32px;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-sublabel {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.back-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-btn:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .switch {
