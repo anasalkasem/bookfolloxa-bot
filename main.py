@@ -1343,6 +1343,7 @@ def webhook():
 async def setup_webhook(application: Application) -> None:
     """Setup webhook with Telegram"""
     import asyncio
+    from telegram import BotCommand
     try:
         # Initialize application first
         await application.initialize()
@@ -1360,6 +1361,13 @@ async def setup_webhook(application: Application) -> None:
             allowed_updates=Update.ALL_TYPES,
             drop_pending_updates=True
         )
+        
+        # Set bot commands (menu)
+        commands = [
+            BotCommand("start", "🎮 ابدأ اللعبة - Start Game")
+        ]
+        await application.bot.set_my_commands(commands)
+        logger.info("✅ Bot menu commands updated")
         
         webhook_info = await application.bot.get_webhook_info()
         logger.info(f"✅ Webhook configured: {webhook_info.url}")
