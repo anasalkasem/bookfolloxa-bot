@@ -958,6 +958,51 @@ input:checked + .slider:before {
     transform: scale(1.05);
 }
 
+/* ===== WALLET TABS ===== */
+.wallet-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.wallet-tab {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wallet-tab.active {
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    color: white;
+    border-color: var(--accent-cyan);
+}
+
+.wallet-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wallet-form input,
+.wallet-form select {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+}
+
+.wallet-form input::placeholder {
+    color: var(--text-secondary);
+}
+
 .service-list {
     display: flex;
     flex-direction: column;

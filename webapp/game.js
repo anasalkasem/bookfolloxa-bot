@@ -913,6 +913,137 @@ function watchAd() {
     }, 2000);
 }
 
+// ===== WALLET FUNCTIONS =====
+function switchWalletTab(tab) {
+    const depositTab = document.getElementById('depositTab');
+    const withdrawTab = document.getElementById('withdrawTab');
+    const tabs = document.querySelectorAll('.wallet-tab');
+    
+    tabs.forEach(t => t.classList.remove('active'));
+    
+    if (tab === 'deposit') {
+        depositTab.style.display = 'block';
+        withdrawTab.style.display = 'none';
+        tabs[0].classList.add('active');
+    } else {
+        depositTab.style.display = 'none';
+        withdrawTab.style.display = 'block';
+        tabs[1].classList.add('active');
+    }
+}
+
+async function depositCrypto() {
+    const amount = parseFloat(document.getElementById('depositAmount').value);
+    const currency = document.getElementById('depositCurrency').value;
+    
+    if (!amount || amount < 1) {
+        showNotification('❌ Minimum deposit is 1 USDT/TON', 'error');
+        return;
+    }
+    
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    if (!user) {
+        showNotification('❌ User not found', 'error');
+        return;
+    }
+    
+    showNotification(`💳 Creating deposit order for ${amount} ${currency}...`, 'info');
+    
+    try {
+        const response = await fetch('/api/wallet/deposit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({
+                telegram_id: user.id,
+                amount_crypto: amount,
+                currency: currency,
+                _auth: tg.initData
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.payment_link) {
+            const bflxAmount = formatNumber(data.amount_bflx);
+            document.getElementById('depositInfo').innerHTML = 
+                `✅ Order created: ${amount} ${currency} = ${bflxAmount} BFLX<br>Opening payment...`;
+            
+            tg.openLink(data.payment_link);
+            showNotification(`✅ Payment link opened! Complete payment in Telegram Wallet`, 'success');
+        } else {
+            showNotification(`❌ ${data.error || 'Failed to create deposit order'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Deposit error:', error);
+        showNotification('❌ Deposit error occurred', 'error');
+    }
+}
+
+async function withdrawCrypto() {
+    const amount = parseInt(document.getElementById('withdrawAmount').value);
+    const currency = document.getElementById('withdrawCurrency').value;
+    
+    if (!amount || amount < 10000) {
+        showNotification('❌ Minimum withdrawal is 10,000 BFLX', 'error');
+        return;
+    }
+    
+    if (gameState.bflx < amount) {
+        showNotification('❌ Insufficient balance', 'error');
+        return;
+    }
+    
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
+    if (!user) {
+        showNotification('❌ User not found', 'error');
+        return;
+    }
+    
+    const cryptoAmount = (amount / 1000).toFixed(2);
+    showNotification(`💸 Processing withdrawal: ${formatNumber(amount)} BFLX → ${cryptoAmount} ${currency}...`, 'info');
+    
+    try {
+        const response = await fetch('/api/wallet/withdraw', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': tg.initData
+            },
+            body: JSON.stringify({
+                telegram_id: user.id,
+                amount_bflx: amount,
+                currency: currency,
+                _auth: tg.initData
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            gameState.bflx -= amount;
+            updateUI();
+            saveGameState();
+            
+            document.getElementById('withdrawInfo').innerHTML = 
+                `✅ Withdrawal requested: ${formatNumber(amount)} BFLX → ${cryptoAmount} ${currency}<br>
+                Status: Pending (will be processed within 24 hours)`;
+            showNotification(`✅ Withdrawal request submitted!`, 'success');
+            
+            document.getElementById('withdrawAmount').value = '';
+        } else {
+            showNotification(`❌ ${data.error || 'Withdrawal failed'}`, 'error');
+        }
+    } catch (error) {
+        console.error('Withdrawal error:', error);
+        showNotification('❌ Withdrawal error occurred', 'error');
+    }
+}
+
 function updateAdCooldown() {
     const cooldownEl = document.getElementById('adCooldown');
     if (!cooldownEl) return;
