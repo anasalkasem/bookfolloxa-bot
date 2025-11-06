@@ -17,10 +17,12 @@ def validate_telegram_webapp_data(init_data: str, bot_token: str) -> dict:
         # Parse init_data
         data_dict = dict(parse_qsl(init_data))
         
+        logger.debug(f"Received init_data keys: {list(data_dict.keys())}")
+        
         # Extract hash
         received_hash = data_dict.pop('hash', None)
         if not received_hash:
-            logger.warning("No hash in init_data")
+            logger.error("No hash in init_data - rejecting request")
             return None
         
         # Create data_check_string
@@ -43,7 +45,9 @@ def validate_telegram_webapp_data(init_data: str, bot_token: str) -> dict:
         
         # Verify
         if received_hash != expected_hash:
-            logger.warning("Hash mismatch - invalid data")
+            logger.error(f"Hash mismatch - Received: {received_hash[:20]}... Expected: {expected_hash[:20]}...")
+            logger.error(f"Data check string: {repr(data_check_string[:100])}...")
+            logger.error(f"Available keys: {sorted(data_dict.keys())}")
             return None
         
         # Extract user data
@@ -54,5 +58,5 @@ def validate_telegram_webapp_data(init_data: str, bot_token: str) -> dict:
         return user_data
         
     except Exception as e:
-        logger.error(f"❌ Validation error: {e}")
+        logger.error(f"❌ Validation error: {e}", exc_info=True)
         return None

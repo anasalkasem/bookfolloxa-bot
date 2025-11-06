@@ -8,7 +8,6 @@ from models import User, MysteryBox, get_db, init_db
 import game_logic
 import config
 from flask import Flask, send_from_directory
-import threading
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -987,43 +986,29 @@ def run_flask():
     """Run Flask server in background"""
     app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
-async def post_init(application: Application) -> None:
-    """Delete any old webhook before starting polling"""
-    import asyncio
-    try:
-        await application.bot.delete_webhook(drop_pending_updates=True)
-        await asyncio.sleep(1)
-        logger.info("✅ Webhook deleted, ready for polling")
-    except Exception as e:
-        logger.warning(f"⚠️ Could not delete webhook: {e}")
-
 def main():
     global telegram_app
+    import asyncio
     
     logger.info("Initializing database...")
     init_db()
     
-    logger.info("Starting Flask server in background...")
-    flask_thread = threading.Thread(target=run_flask, daemon=True)
-    flask_thread.start()
-    
     logger.info("Initializing bot...")
-    telegram_app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).post_init(post_init).build()
+    telegram_app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
     
     telegram_app.add_handler(CommandHandler("start", start))
     telegram_app.add_handler(CallbackQueryHandler(button_callback))
     
-    logger.info("Starting bot with polling...")
-    logger.info("Bot is ready to receive messages!")
+    logger.info("Setting up webhook...")
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(setup_webhook(telegram_app))
+    loop.close()
     
-    telegram_app.run_polling(
-        allowed_updates=Update.ALL_TYPES,
-        drop_pending_updates=True,
-        read_timeout=30,
-        write_timeout=30,
-        connect_timeout=30,
-        pool_timeout=30
-    )
+    logger.info("Starting Flask server with webhook mode...")
+    logger.info("Bot is ready to receive messages via webhook!")
+    
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
 
 if __name__ == '__main__':
     main()
