@@ -1025,13 +1025,19 @@ def create_invoice():
                 )
                 return invoice_link
             except Exception as e:
-                logger.error(f"Error creating invoice: {e}")
+                logger.error(f"Error creating invoice: {e}", exc_info=True)
                 return None
         
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_closed():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
         invoice_link = loop.run_until_complete(create_invoice_link())
-        loop.close()
         
         if invoice_link:
             return jsonify({

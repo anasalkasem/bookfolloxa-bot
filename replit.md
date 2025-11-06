@@ -60,12 +60,17 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
 **Recent Changes (November 2025):**
-- **✅ Telegram Stars Integration (Latest):** Implemented real payment system using Telegram Stars API
+- **✅ Telegram Stars Integration - FULLY WORKING (Latest):** Implemented real payment system using Telegram Stars API
   - Added Payment model to track all transactions in database
-  - Created pre_checkout_query and successful_payment handlers
+  - Created pre_checkout_query and successful_payment handlers  
   - Built /api/create_invoice endpoint for generating payment links
   - Updated WebApp to use real Telegram payment flow (openInvoice)
   - Replaced fake/simulated purchases with authentic Telegram Stars payments
+  - **Fixed HMAC validation:** Corrected key/message order in webapp/telegram_auth.py (HMAC("WebAppData", bot_token))
+  - **Fixed asyncio event loop:** Resolved "Event loop is closed" error by reusing/creating event loop properly
+  - **Security hardened:** All payment endpoints now validate Telegram WebApp HMAC signatures
+  - **Duplicate prevention:** Charge ID tracking prevents double-crediting on retries
+  - **Amount verification:** Backend validates payment amounts match canonical package prices
 - Converted bot from Polling mode to Webhook mode for better stability on Replit
 - Resolved "Conflict: terminated by other getUpdates request" issue
 - Enhanced authentication logging for better debugging
