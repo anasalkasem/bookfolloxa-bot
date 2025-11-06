@@ -136,15 +136,13 @@ function calculateOfflineEarnings() {
 function setupEventListeners() {
     // Character tap
     const character = document.getElementById('mainCharacter');
+    
     if (character) {
         character.addEventListener('click', handleCharacterTap);
         character.addEventListener('touchstart', (e) => {
             e.preventDefault();
             handleCharacterTap(e);
         });
-        console.log('✅ Character tap events attached');
-    } else {
-        console.error('❌ mainCharacter element not found!');
     }
     
     // Navigation
@@ -477,7 +475,7 @@ function hireInfluencer(id) {
 }
 
 // ===== TASKS =====
-function renderTasks(category) {
+function renderTasks(category = 'daily') {
     const list = document.getElementById('tasksList');
     const tasks = tasksData[category];
     
@@ -604,6 +602,11 @@ function renderReferralPage() {
             referralsList.appendChild(card);
         });
     }
+}
+
+function renderMorePage() {
+    // Update More page content (wallet, settings, etc.)
+    // This is called during initialization to ensure the page is ready
 }
 
 function handleInvite() {
@@ -1631,7 +1634,6 @@ function initTonConnect() {
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🎮 Bookfolloxa Game Initializing...');
     
     // Wait for all DOM elements to be ready
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -1662,6 +1664,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderMorePage();
     
     // Setup event listeners AFTER UI is ready
+    await new Promise(resolve => setTimeout(resolve, 100));
     setupEventListeners();
     
     // Start game loops
