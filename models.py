@@ -124,7 +124,13 @@ class Payment(Base):
     paid_at = Column(DateTime, nullable=True)
 
 
-engine = create_engine(config.DATABASE_URL)
+engine = create_engine(
+    config.DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+    pool_size=10,
+    max_overflow=20
+)
 Base.metadata.create_all(engine)
 SessionLocal = sessionmaker(bind=engine)
 
