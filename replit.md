@@ -72,11 +72,10 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
   - Error messages: "Invalid package type", "Payment amount is incorrect", etc.
   - All Telegram Stars payment flow now 100% English
   - Translations file updated for consistency
-- **✅ New Bookfolloxa Logo in Header:** Added professional gradient B logo
-  - Logo displays next to user avatar in header
-  - 45px height with purple drop-shadow effect
-  - Replaces previous text-only branding
-  - Consistent user experience across all languages
+- **✅ Updated Header Icons with New Logo:** Replaced BFLX and Followers icons with new Bookfolloxa logo
+  - Both stat cards now display the professional gradient B logo
+  - Consistent branding across the header
+  - Logo has purple drop-shadow effect matching the game theme
 
 **Recent Changes (November 06, 2025 - Previous Update):**
 - **✅ Statistics & Balance Tracking System:** Comprehensive tracking and display
