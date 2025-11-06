@@ -1101,17 +1101,30 @@ def webhook():
     
     try:
         import asyncio
+        import concurrent.futures
         from flask import request
         
         update_data = request.get_json(force=True)
         update = Update.de_json(update_data, telegram_app.bot)
         
-        # Process update in async context using asyncio.run
-        asyncio.run(telegram_app.process_update(update))
+        # Process update in a separate thread with its own event loop
+        def process_in_thread():
+            """Process the update in a new thread with its own event loop"""
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                new_loop.run_until_complete(telegram_app.process_update(update))
+            finally:
+                new_loop.close()
+        
+        # Execute in thread pool to avoid event loop conflicts
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(process_in_thread)
+            future.result(timeout=30)  # Wait up to 30 seconds
         
         return 'OK', 200
     except Exception as e:
-        logger.error(f"Error processing webhook: {e}")
+        logger.error(f"Error processing webhook: {e}", exc_info=True)
         return 'Error', 500
 
 
