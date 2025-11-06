@@ -690,22 +690,46 @@ async function renderLeaderboard() {
     
     const userId = getTelegramUserId && getTelegramUserId();
     
-    leaderboardList.innerHTML = players.slice(0, 10).map(player => {
+    // Clear existing content safely
+    leaderboardList.textContent = '';
+    
+    // Build leaderboard using safe DOM methods
+    players.slice(0, 10).forEach(player => {
         const isCurrentUser = userId && player.id === userId;
         const rankBadge = player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : `#${player.rank}`;
         const avatar = player.rank === 1 ? '👑' : player.rank === 2 ? '💎' : player.rank === 3 ? '⭐' : isCurrentUser ? '👤' : '🌟';
         
-        return `
-            <div class="leaderboard-item ${isCurrentUser ? 'highlight' : ''}">
-                <div class="rank">${rankBadge}</div>
-                <div class="player-avatar">${avatar}</div>
-                <div class="player-info">
-                    <div class="player-name">${player.first_name || player.username || 'Anonymous'}</div>
-                    <div class="player-earnings">${formatNumber(player.total_earned)} BFLX</div>
-                </div>
-            </div>
-        `;
-    }).join('');
+        // Create elements
+        const item = document.createElement('div');
+        item.className = isCurrentUser ? 'leaderboard-item highlight' : 'leaderboard-item';
+        
+        const rank = document.createElement('div');
+        rank.className = 'rank';
+        rank.textContent = rankBadge;
+        
+        const playerAvatar = document.createElement('div');
+        playerAvatar.className = 'player-avatar';
+        playerAvatar.textContent = avatar;
+        
+        const playerInfo = document.createElement('div');
+        playerInfo.className = 'player-info';
+        
+        const playerName = document.createElement('div');
+        playerName.className = 'player-name';
+        playerName.textContent = player.first_name || player.username || 'Anonymous';
+        
+        const playerEarnings = document.createElement('div');
+        playerEarnings.className = 'player-earnings';
+        playerEarnings.textContent = `${formatNumber(player.total_earned)} BFLX`;
+        
+        // Assemble DOM tree
+        playerInfo.appendChild(playerName);
+        playerInfo.appendChild(playerEarnings);
+        item.appendChild(rank);
+        item.appendChild(playerAvatar);
+        item.appendChild(playerInfo);
+        leaderboardList.appendChild(item);
+    });
 }
 
 // ===== DAILY REWARDS =====
