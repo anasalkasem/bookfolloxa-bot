@@ -66,15 +66,6 @@ const tasksData = {
     ]
 };
 
-// ===== INITIALIZATION =====
-window.addEventListener('DOMContentLoaded', () => {
-    initGame();
-    setupEventListeners();
-    startGameLoops();
-    loadGameState();
-    calculateOfflineEarnings();
-});
-
 function initGame() {
     // Detect gender from Telegram
     if (window.Telegram && window.Telegram.WebApp) {
@@ -622,29 +613,25 @@ function copyReferralLink() {
 }
 
 // ===== GAME LOOPS =====
-function startGameLoops() {
-    // Energy regeneration
-    setInterval(() => {
-        if (gameState.energy < gameState.maxEnergy) {
-            gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + ENERGY_REGEN_RATE);
-            updateUI();
-        }
-    }, ENERGY_REGEN_INTERVAL);
-    
-    // Auto-mining
-    setInterval(() => {
-        if (gameState.miningPerHour > 0) {
-            const miningPerSecond = gameState.miningPerHour / 3600;
-            gameState.bflx += miningPerSecond;
-            gameState.followers += miningPerSecond;
-            updateUI();
-        }
-    }, MINING_UPDATE_INTERVAL);
-    
-    // Auto-save
-    setInterval(() => {
-        saveGameState();
-    }, SAVE_INTERVAL);
+function regenerateEnergy() {
+    if (gameState.energy < gameState.maxEnergy) {
+        gameState.energy = Math.min(gameState.maxEnergy, gameState.energy + ENERGY_REGEN_RATE);
+        updateUI();
+    }
+}
+
+function updateMining() {
+    if (gameState.miningPerHour > 0) {
+        // Calculate earnings per second
+        const earningsPerSecond = gameState.miningPerHour / 3600;
+        
+        // Add to balance and followers
+        gameState.bflx += earningsPerSecond;
+        gameState.followers += earningsPerSecond;
+        
+        // Update UI every second
+        updateUI();
+    }
 }
 
 // ===== UI UPDATES =====
@@ -1149,14 +1136,16 @@ async function renderLeaderboard() {
 // ===== DAILY REWARDS =====
 function renderDailyRewards() {
     const grid = document.getElementById('dailyRewardsGrid');
+    if (!grid) return;
+    
     const rewards = [
-        { day: 1, reward: 1000 },
-        { day: 2, reward: 2000 },
-        { day: 3, reward: 3000 },
-        { day: 4, reward: 5000 },
-        { day: 5, reward: 7000 },
-        { day: 6, reward: 10000 },
-        { day: 7, reward: 20000 }
+        { day: 1, reward: 1000, icon: '🎁' },
+        { day: 2, reward: 2000, icon: '🎁' },
+        { day: 3, reward: 3000, icon: '🎁' },
+        { day: 4, reward: 5000, icon: '💎' },
+        { day: 5, reward: 7000, icon: '💎' },
+        { day: 6, reward: 10000, icon: '👑' },
+        { day: 7, reward: 20000, icon: '🏆' }
     ];
     
     const currentDay = gameState.dailyRewardDay;
@@ -1170,6 +1159,10 @@ function renderDailyRewards() {
         if (r.day <= currentDay) card.classList.add('claimed');
         if (r.day === currentDay + 1) card.classList.add('next');
         
+        const iconDiv = document.createElement('div');
+        iconDiv.style.fontSize = '32px';
+        iconDiv.textContent = r.icon;
+        
         const dayBadge = document.createElement('div');
         dayBadge.className = 'day-badge';
         dayBadge.textContent = `Day ${r.day}`;
@@ -1178,6 +1171,7 @@ function renderDailyRewards() {
         rewardAmount.className = 'reward-amount';
         rewardAmount.textContent = `${formatNumber(r.reward)} BFLX`;
         
+        card.appendChild(iconDiv);
         card.appendChild(dayBadge);
         card.appendChild(rewardAmount);
         
@@ -1191,22 +1185,40 @@ function renderDailyRewards() {
         grid.appendChild(card);
     });
     
-    // Check if can claim
+    // Update claim button
+    updateDailyClaimButton();
+}
+
+function updateDailyClaimButton() {
+    const claimBtn = document.getElementById('claimDailyBtn');
+    if (!claimBtn) return;
+    
     const now = Date.now();
     const oneDayMs = 24 * 60 * 60 * 1000;
-    const canClaim = (now - gameState.lastDailyClaim) >= oneDayMs;
+    const currentDay = gameState.dailyRewardDay;
+    const lastClaim = gameState.lastDailyClaim || 0;
     
-    const claimBtn = document.getElementById('claimDailyBtn');
-    if (canClaim && currentDay < 7) {
+    // Check if can claim
+    const canClaim = (now - lastClaim) >= oneDayMs || lastClaim === 0;
+    
+    if (currentDay >= 7) {
+        // All rewards claimed
+        claimBtn.disabled = true;
+        claimBtn.textContent = '✨ All Rewards Claimed! ✨';
+        claimBtn.style.background = 'linear-gradient(135deg, #FFD700, #FFA500)';
+    } else if (canClaim) {
+        // Can claim now
         claimBtn.disabled = false;
-        claimBtn.textContent = 'Claim Today\'s Reward';
-    } else if (currentDay >= 7) {
-        claimBtn.disabled = true;
-        claimBtn.textContent = 'All Rewards Claimed! 🎉';
+        claimBtn.textContent = `🎁 Claim Day ${currentDay + 1} Reward`;
+        claimBtn.style.background = 'linear-gradient(135deg, var(--accent-cyan), var(--accent-purple))';
     } else {
+        // Need to wait
         claimBtn.disabled = true;
-        const hoursLeft = Math.ceil((oneDayMs - (now - gameState.lastDailyClaim)) / (60 * 60 * 1000));
-        claimBtn.textContent = `Come back in ${hoursLeft}h`;
+        const msLeft = oneDayMs - (now - lastClaim);
+        const hoursLeft = Math.floor(msLeft / (60 * 60 * 1000));
+        const minutesLeft = Math.floor((msLeft % (60 * 60 * 1000)) / (60 * 1000));
+        claimBtn.textContent = `⏰ Come back in ${hoursLeft}h ${minutesLeft}m`;
+        claimBtn.style.background = 'rgba(255, 255, 255, 0.1)';
     }
 }
 
@@ -1214,22 +1226,43 @@ function claimDailyReward() {
     const now = Date.now();
     const oneDayMs = 24 * 60 * 60 * 1000;
     
-    if ((now - gameState.lastDailyClaim) < oneDayMs) {
+    // Check if can claim
+    if ((now - gameState.lastDailyClaim) < oneDayMs && gameState.lastDailyClaim > 0) {
         showNotification('⏰ Come back tomorrow!', 'error');
         return;
     }
     
+    // Check if already claimed all rewards
+    if (gameState.dailyRewardDay >= 7) {
+        showNotification('🎉 All rewards already claimed!', 'info');
+        return;
+    }
+    
+    // Claim reward
     gameState.dailyRewardDay++;
     gameState.lastDailyClaim = now;
     
     const rewards = [1000, 2000, 3000, 5000, 7000, 10000, 20000];
     const reward = rewards[gameState.dailyRewardDay - 1];
     
+    // Add reward
     gameState.bflx += reward;
-    showNotification(`🎉 Daily reward claimed! +${formatNumber(reward)} BFLX`, 'success');
+    gameState.followers += reward;
+    
+    // Visual effects
+    playSound('success');
+    triggerHaptic('medium');
+    showNotification(`🎉 Day ${gameState.dailyRewardDay} claimed! +${formatNumber(reward)} BFLX`, 'success');
+    
+    // Update UI
     updateUI();
     renderDailyRewards();
     saveGameState();
+    
+    // Save to backend if available
+    if (typeof saveToBackend === 'function') {
+        saveToBackend();
+    }
 }
 
 // ===== HELPER: SHOW PAGE =====
@@ -1247,7 +1280,6 @@ function showPage(pageName) {
         // Load content
         if (pageName === 'store') {
             updateAdCooldown();
-            setInterval(updateAdCooldown, 60000);
         } else if (pageName === 'leaderboard') {
             renderLeaderboard();
         } else if (pageName === 'daily') {
@@ -1585,10 +1617,19 @@ function initTonConnect() {
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🎮 Bookfolloxa Game Initialized!');
+    console.log('🎮 Bookfolloxa Game Initializing...');
+    
+    // Initialize game basics
+    initGame();
+    
+    // Setup event listeners
+    setupEventListeners();
     
     // Load from localStorage first
     loadGameState();
+    
+    // Calculate offline earnings
+    calculateOfflineEarnings();
     
     // Initialize TON Connect
     initTonConnect();
@@ -1607,9 +1648,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderMorePage();
     
     // Start game loops
-    setInterval(regenerateEnergy, ENERGY_REGEN_INTERVAL);
-    setInterval(updateMining, MINING_UPDATE_INTERVAL);
-    setInterval(saveGameState, SAVE_INTERVAL);
+    setInterval(regenerateEnergy, ENERGY_REGEN_INTERVAL); // Every 3 seconds
+    setInterval(updateMining, MINING_UPDATE_INTERVAL); // Every 1 second
+    setInterval(saveGameState, SAVE_INTERVAL); // Every 5 seconds
+    
+    // Update timers every minute
+    setInterval(() => {
+        updateAdCooldown();
+        updateDailyClaimButton();
+    }, 60000); // Every 60 seconds
     
     // Navigation
     document.querySelectorAll('.nav-item').forEach(item => {
