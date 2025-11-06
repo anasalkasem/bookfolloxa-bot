@@ -60,7 +60,15 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
 **Recent Changes (November 2025):**
-- **✅ Telegram Stars Integration - FULLY WORKING (Latest):** Implemented real payment system using Telegram Stars API
+- **✅ Enhanced Interactive Effects & UX (Latest):** Improved user experience with rich feedback systems
+  - **Sound System:** Implemented Web Audio API for programmatic sounds (tap, critical, purchase, success, error) - no audio files needed
+  - **Critical Hits:** Added 10% chance for ×10 BFLX multiplier with special animations, particles (🔥💥⚡✨💫🌟💯🎯), and sound effects
+  - **Enhanced Haptic Feedback:** Telegram WebApp haptic support with fallback to navigator.vibrate API
+  - **Visual Effects:** Improved particle explosions, floating numbers (+5 BFLX), character shake animations on tap
+  - **Gender Selection:** Added male/female character toggle in settings with proper state persistence via updateGenderButtons()
+  - **CSS Animations:** New critical-hit, critical-number, and critical-particle keyframe animations for engaging feedback
+  - **Code Quality:** Refactored changeCharacter() to reuse updateGenderButtons() helper, eliminating duplicate logic
+- **✅ Telegram Stars Integration - FULLY WORKING:** Implemented real payment system using Telegram Stars API
   - Added Payment model to track all transactions in database
   - Created pre_checkout_query and successful_payment handlers  
   - Built /api/create_invoice endpoint for generating payment links
