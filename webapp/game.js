@@ -40,11 +40,11 @@ const SAVE_INTERVAL = 5000;
 
 // ===== INFLUENCER DATA =====
 const influencerTypes = [
-    { id: 1, name: 'Nano Influencer', icon: '👤', cost: 100, income: 10, level: 1 },
-    { id: 2, name: 'Micro Influencer', icon: '⭐', cost: 1500, income: 150, level: 5 },
-    { id: 3, name: 'Mid-tier Influencer', icon: '🌟', cost: 20000, income: 2000, level: 10 },
-    { id: 4, name: 'Macro Influencer', icon: '💫', cost: 300000, income: 30000, level: 20 },
-    { id: 5, name: 'Mega Influencer', icon: '✨', cost: 5000000, income: 500000, level: 30 }
+    { id: 1, name: 'Nano Influencer', icon: '🎯', cost: 100, income: 10, level: 1 },
+    { id: 2, name: 'Micro Influencer', icon: '🚀', cost: 1500, income: 150, level: 5 },
+    { id: 3, name: 'Mid-tier Influencer', icon: '💎', cost: 20000, income: 2000, level: 10 },
+    { id: 4, name: 'Macro Influencer', icon: '👑', cost: 300000, income: 30000, level: 20 },
+    { id: 5, name: 'Mega Influencer', icon: '🏆', cost: 5000000, income: 500000, level: 30 }
 ];
 
 // ===== TASKS DATA =====
@@ -136,11 +136,16 @@ function calculateOfflineEarnings() {
 function setupEventListeners() {
     // Character tap
     const character = document.getElementById('mainCharacter');
-    character.addEventListener('click', handleCharacterTap);
-    character.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        handleCharacterTap(e);
-    });
+    if (character) {
+        character.addEventListener('click', handleCharacterTap);
+        character.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleCharacterTap(e);
+        });
+        console.log('✅ Character tap events attached');
+    } else {
+        console.error('❌ mainCharacter element not found!');
+    }
     
     // Navigation
     const navItems = document.querySelectorAll('.nav-item');
@@ -149,19 +154,28 @@ function setupEventListeners() {
     });
     
     // Invite button
-    document.getElementById('inviteBtn').addEventListener('click', handleInvite);
-    document.getElementById('copyLinkBtn').addEventListener('click', copyReferralLink);
+    const inviteBtn = document.getElementById('inviteBtn');
+    const copyBtn = document.getElementById('copyLinkBtn');
+    if (inviteBtn) inviteBtn.addEventListener('click', handleInvite);
+    if (copyBtn) copyBtn.addEventListener('click', copyReferralLink);
     
     // Settings toggles
-    document.getElementById('soundToggle').addEventListener('change', (e) => {
-        gameState.settings.sound = e.target.checked;
-        saveGameState();
-    });
+    const soundToggle = document.getElementById('soundToggle');
+    const vibrationToggle = document.getElementById('vibrationToggle');
     
-    document.getElementById('vibrationToggle').addEventListener('change', (e) => {
-        gameState.settings.vibration = e.target.checked;
-        saveGameState();
-    });
+    if (soundToggle) {
+        soundToggle.addEventListener('change', (e) => {
+            gameState.settings.sound = e.target.checked;
+            saveGameState();
+        });
+    }
+    
+    if (vibrationToggle) {
+        vibrationToggle.addEventListener('change', (e) => {
+            gameState.settings.vibration = e.target.checked;
+            saveGameState();
+        });
+    }
 }
 
 // ===== CHARACTER TAP HANDLER =====
@@ -1619,11 +1633,11 @@ function initTonConnect() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎮 Bookfolloxa Game Initializing...');
     
+    // Wait for all DOM elements to be ready
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Initialize game basics
     initGame();
-    
-    // Setup event listeners
-    setupEventListeners();
     
     // Load from localStorage first
     loadGameState();
@@ -1646,6 +1660,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderTasks();
     renderReferralPage();
     renderMorePage();
+    
+    // Setup event listeners AFTER UI is ready
+    setupEventListeners();
     
     // Start game loops
     setInterval(regenerateEnergy, ENERGY_REGEN_INTERVAL); // Every 3 seconds
