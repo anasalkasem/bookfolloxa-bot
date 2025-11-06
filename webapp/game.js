@@ -81,6 +81,12 @@ function initGame() {
         }
     }
     
+    // Initialize level title
+    const userLevelElement = document.querySelector('.user-level');
+    if (userLevelElement) {
+        userLevelElement.textContent = getLevelTitle(gameState.level);
+    }
+    
     // Set character based on gender
     updateCharacter();
     updateUI();
@@ -97,6 +103,93 @@ function updateCharacter() {
     } else {
         character.src = 'assets/character-male.png';
         if (avatarImg) avatarImg.src = 'assets/character-male.png';
+    }
+}
+
+// ===== CHARACTER SIZE BASED ON LEVEL =====
+function updateCharacterSize() {
+    const character = document.getElementById('mainCharacter');
+    if (!character) return;
+    
+    // Calculate scale: starts at 1.0 (Level 1), grows to 1.8 (Level 50)
+    // Formula: 1.0 + (level - 1) * 0.016
+    const baseScale = 1.0;
+    const maxScale = 1.8;
+    const level = gameState.level;
+    const scale = Math.min(maxScale, baseScale + ((level - 1) * 0.016));
+    
+    character.style.transform = `scale(${scale})`;
+}
+
+// ===== LEVEL SYSTEM (50 LEVELS) =====
+function getLevelRequirement(level) {
+    // Balanced exponential growth formula
+    // Level 2: ~4K BFLX
+    // Level 5: ~25K BFLX
+    // Level 10: ~100K BFLX
+    // Level 20: ~815K BFLX
+    // Level 25: ~1.5M BFLX
+    // Level 30: ~7.3M BFLX
+    // Level 40: ~34M BFLX
+    // Level 50: ~79M BFLX
+    if (level === 1) return 0;
+    if (level <= 10) {
+        // Early levels: quadratic growth
+        return Math.floor(1000 * level * level);
+    } else if (level <= 25) {
+        // Mid levels: moderate exponential
+        return Math.floor(100000 + 16000 * Math.pow(level - 10, 1.65));
+    } else {
+        // Late levels: steep exponential
+        return Math.floor(2500000 + 300000 * Math.pow(level - 25, 1.72));
+    }
+}
+
+function getLevelTitle(level) {
+    if (level >= 45) return '🏆 Legendary Emperor';
+    if (level >= 40) return '👑 Master Influencer';
+    if (level >= 35) return '💎 Diamond Mogul';
+    if (level >= 30) return '⭐ Rising Star';
+    if (level >= 25) return '🚀 Professional';
+    if (level >= 20) return '🔥 Advanced Creator';
+    if (level >= 15) return '💪 Experienced';
+    if (level >= 10) return '📈 Growing Influencer';
+    if (level >= 5) return '🌱 Apprentice';
+    return '🐣 Beginner';
+}
+
+function checkLevelUp() {
+    let leveledUp = false;
+    
+    // Check if player can level up (max level 50)
+    while (gameState.level < 50 && gameState.bflx >= getLevelRequirement(gameState.level + 1)) {
+        gameState.level++;
+        leveledUp = true;
+        
+        // Reward player for leveling up
+        const levelUpBonus = gameState.level * 1000;
+        gameState.bflx += levelUpBonus;
+        
+        // Show level up notification
+        const levelTitle = getLevelTitle(gameState.level);
+        showNotification(`🎉 LEVEL UP! You are now ${levelTitle} (Level ${gameState.level})! +${formatNumber(levelUpBonus)} BFLX Bonus!`, 'success');
+        playSound('success');
+        triggerHaptic('success');
+        
+        // Update level-based bonuses
+        gameState.tapPower = Math.floor(5 + gameState.level * 0.5);
+        gameState.maxEnergy = Math.floor(1000 + gameState.level * 50);
+    }
+    
+    if (leveledUp) {
+        // Update level title in UI
+        const userLevelElement = document.querySelector('.user-level');
+        if (userLevelElement) {
+            userLevelElement.textContent = getLevelTitle(gameState.level);
+        }
+        
+        updateUI();
+        saveGameState();
     }
 }
 
@@ -125,6 +218,7 @@ function calculateOfflineEarnings() {
         if (offlineEarnings > 0) {
             gameState.bflx += offlineEarnings;
             gameState.followers += offlineEarnings;
+            checkLevelUp();
             showNotification(`⛏️ Welcome back! You earned ${formatNumber(offlineEarnings)} BFLX while offline!`, 'success');
         }
     }
@@ -222,6 +316,9 @@ function handleCharacterTap(e) {
     
     // Update UI
     updateUI();
+    
+    // Check for level up
+    checkLevelUp();
     
     // Update tasks
     updateTaskProgress('d2', 1);
@@ -543,6 +640,7 @@ function updateTaskProgress(taskId, amount) {
 function completeTask(task) {
     task.completed = true;
     gameState.bflx += task.reward;
+    checkLevelUp();
     showNotification(`🎉 Task completed! +${formatNumber(task.reward)} BFLX`, 'success');
     updateUI();
 }
@@ -646,6 +744,9 @@ function updateMining() {
         gameState.bflx += earningsPerSecond;
         gameState.followers += earningsPerSecond;
         
+        // Check for level up
+        checkLevelUp();
+        
         // Update UI every second
         updateUI();
     }
@@ -658,6 +759,9 @@ function updateUI() {
     document.getElementById('followersCount').textContent = formatNumber(gameState.followers);
     document.getElementById('levelBadge').textContent = gameState.level;
     
+    // Balance counter above character
+    document.getElementById('counterValue').textContent = formatNumber(gameState.bflx);
+    
     // Tap power
     document.getElementById('tapPower').textContent = gameState.tapPower;
     
@@ -669,6 +773,9 @@ function updateUI() {
     document.getElementById('energyFill').style.width = `${energyPercent}%`;
     document.getElementById('currentEnergy').textContent = Math.floor(gameState.energy);
     document.getElementById('maxEnergy').textContent = gameState.maxEnergy;
+    
+    // Update character size based on level
+    updateCharacterSize();
 }
 
 // ===== UTILITIES =====
@@ -873,6 +980,7 @@ async function buyBFLX(packageType) {
                     } else {
                         // Fallback: add locally and sync later
                         gameState.bflx += pkg.bflx;
+                        checkLevelUp();
                         showNotification(`✅ Payment successful! +${formatNumber(pkg.bflx)} BFLX`, 'success');
                         updateUI();
                         saveGameState();
@@ -932,6 +1040,7 @@ function watchAd() {
     setTimeout(() => {
         gameState.bflx += 500;
         gameState.lastAdWatch = now;
+        checkLevelUp();
         showNotification('✅ Ad completed! +500 BFLX', 'success');
         updateUI();
         saveGameState();
@@ -1265,6 +1374,7 @@ function claimDailyReward() {
     // Add reward
     gameState.bflx += reward;
     gameState.followers += reward;
+    checkLevelUp();
     
     // Visual effects
     playSound('success');

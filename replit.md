@@ -46,9 +46,14 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 
 **Feature Specifications:**
 - **Initial Energy:** 1000, Regeneration: 1 energy/3 seconds.
-- **Initial Click Power:** 1 BFLX.
+- **Initial Click Power:** 5 BFLX (scales with level: 5 + level * 0.5).
 - **Initial Auto-Mining:** 10 BFLX/hour.
-- **Level System:** Beginner (1-10), Intermediate (11-25), Advanced (26-50), Expert (51-100), Legendary (100+).
+- **Max Energy:** 1000 (scales with level: 1000 + level * 50).
+- **Level System:** 50 levels total with balanced exponential progression
+  - Early game (1-10): Linear growth, easy progression
+  - Mid game (11-25): Moderate exponential, strategic gameplay
+  - Late game (26-50): Steep exponential, challenging endgame
+- **Character Scaling:** Grows from 1.0x to 1.8x size across 50 levels.
 
 **System Design Choices:**
 - **Backend:** Python 3.11.
@@ -59,7 +64,29 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Code Organization:** Modular structure with `main.py` (bot and Flask server), `models.py` (DB models), `game_logic.py`, `config.py`, `requirements.txt`, `webapp/` for WebApp, and `.env` for environment variables.
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
-**Recent Changes (November 06, 2025):**
+**Recent Changes (November 06, 2025 - Latest):**
+- **✅ Advanced Level System (50 Levels):** Implemented balanced progression system
+  - Balanced exponential growth formula for realistic progression
+  - Level requirements: Level 10 (~100K BFLX), Level 25 (~1.5M BFLX), Level 40 (~34M BFLX), Level 50 (~79M BFLX)
+  - Level-based bonuses: Tap Power increases with level, Max Energy scales with progression
+  - Level-up rewards: Players receive BFLX bonus on each level up
+  - 9 distinct level titles from "🐣 Beginner" to "🏆 Legendary Emperor"
+  - checkLevelUp() called on all BFLX changes (tap, mining, tasks, purchases, ads, rewards)
+- **✅ Dynamic Character Scaling:** Character grows with player level
+  - Scale formula: 1.0 at Level 1 → 1.8 at Level 50 (80% size increase)
+  - Smooth CSS transform animations for size changes
+  - Visual progression feedback for player advancement
+- **✅ Balance Counter Above Character:** Live BFLX display with animations
+  - Floating counter positioned above character with glassmorphism design
+  - Pulse animation with cyan/purple gradient
+  - Spinning coin icon animation
+  - Real-time updates synchronized with game state
+- **✅ Bug Fixes:** Resolved critical JavaScript errors
+  - Fixed renderTasks() undefined category error with default parameter
+  - Added missing renderMorePage() function
+  - Event listeners now properly attached after DOM rendering
+
+**Recent Changes (November 06, 2025 - Earlier):**
 - **✅ TON Connect Integration - REAL WALLET CONNECTION:** Implemented authentic wallet integration
   - Installed @tonconnect/ui library for TON blockchain wallet connections
   - Created tonconnect-manifest.json for app identity and configuration
