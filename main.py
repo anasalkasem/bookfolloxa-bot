@@ -1343,7 +1343,7 @@ def webhook():
 async def setup_webhook(application: Application) -> None:
     """Setup webhook with Telegram"""
     import asyncio
-    from telegram import BotCommand
+    from telegram import MenuButtonWebApp, WebAppInfo
     try:
         # Initialize application first
         await application.initialize()
@@ -1362,12 +1362,18 @@ async def setup_webhook(application: Application) -> None:
             drop_pending_updates=True
         )
         
-        # Set bot commands (menu)
-        commands = [
-            BotCommand("start", "🎮 ابدأ اللعبة - Start Game")
-        ]
-        await application.bot.set_my_commands(commands)
-        logger.info("✅ Bot menu commands updated")
+        # Set Menu Button to open game directly
+        webapp_url = 'https://raaik-hal-tastaie-anass111173.replit.app/webapp/'
+        menu_button = MenuButtonWebApp(
+            text="🎮 العب الآن",
+            web_app=WebAppInfo(url=webapp_url)
+        )
+        await application.bot.set_chat_menu_button(menu_button=menu_button)
+        logger.info("✅ Bot menu button set to open game")
+        
+        # Remove all commands from menu
+        await application.bot.set_my_commands([])
+        logger.info("✅ Bot commands cleared")
         
         webhook_info = await application.bot.get_webhook_info()
         logger.info(f"✅ Webhook configured: {webhook_info.url}")
