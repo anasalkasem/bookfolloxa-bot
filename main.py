@@ -1,10 +1,10 @@
 import logging
 import os
 from datetime import datetime
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, LabeledPrice
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, PreCheckoutQueryHandler, MessageHandler, filters
 from sqlalchemy.orm import Session
-from models import User, MysteryBox, get_db, init_db
+from models import User, MysteryBox, Payment, get_db, init_db
 import game_logic
 import config
 from flask import Flask, send_from_directory
@@ -776,6 +776,69 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data.startswith('upgrade_'):
         await upgrade_feature_callback(update, context)
 
+BFLX_PACKAGES = {
+    'starter': {'stars': 50, 'bflx': 2500, 'name': 'باقة المبتدئين'},
+    'pro': {'stars': 200, 'bflx': 10000, 'name': 'باقة المحترف'},
+    'king': {'stars': 800, 'bflx': 50000, 'name': 'باقة الملك'},
+    'legend': {'stars': 2000, 'bflx': 150000, 'name': 'باقة الأسطورة'}
+}
+
+async def pre_checkout_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle pre-checkout query for Telegram Stars payments"""
+    query = update.pre_checkout_query
+    
+    try:
+        await query.answer(ok=True)
+        logger.info(f"Pre-checkout approved for user {query.from_user.id}, payload: {query.invoice_payload}")
+    except Exception as e:
+        logger.error(f"Pre-checkout error: {e}")
+        await query.answer(ok=False, error_message="عذراً، حدث خطأ. حاول مرة أخرى.")
+
+async def successful_payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle successful Telegram Stars payment"""
+    message = update.message
+    payment = message.successful_payment
+    
+    try:
+        db = get_db()
+        user = get_or_create_user(message.from_user, db)
+        
+        payload_parts = payment.invoice_payload.split('_')
+        package_type = payload_parts[0]
+        
+        if package_type in BFLX_PACKAGES:
+            pkg = BFLX_PACKAGES[package_type]
+            
+            payment_record = Payment(
+                user_id=user.id,
+                charge_id=payment.telegram_payment_charge_id,
+                invoice_payload=payment.invoice_payload,
+                amount_stars=payment.total_amount,
+                amount_bflx=pkg['bflx'],
+                status='paid',
+                paid_at=datetime.utcnow()
+            )
+            db.add(payment_record)
+            
+            user.balance += pkg['bflx']
+            user.total_earned += pkg['bflx']
+            db.commit()
+            
+            await message.reply_text(
+                f"✅ تم الدفع بنجاح!\n\n"
+                f"🎁 حصلت على: {pkg['bflx']:,} BFLX\n"
+                f"💰 رصيدك الجديد: {user.balance:,} BFLX\n\n"
+                f"شكراً لدعمك! 🌟"
+            )
+            
+            logger.info(f"Payment successful: User {user.id} bought {package_type} for {payment.total_amount} stars")
+        
+        db.close()
+        
+    except Exception as e:
+        logger.error(f"Error processing payment: {e}")
+        await message.reply_text("❌ حدث خطأ في معالجة الدفع. يرجى التواصل مع الدعم.")
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -895,6 +958,59 @@ def sync_user_data(telegram_id):
         logger.error(f"Error syncing user data: {e}")
         return jsonify({'error': 'Server error'}), 500
 
+@app.route('/api/create_invoice', methods=['POST'])
+def create_invoice():
+    """إنشاء فاتورة دفع Telegram Stars"""
+    from flask import jsonify, request
+    import asyncio
+    try:
+        data = request.json
+        telegram_id = data.get('telegram_id')
+        package_type = data.get('package')
+        
+        if not telegram_id or not package_type:
+            return jsonify({'error': 'Missing parameters'}), 400
+        
+        if package_type not in BFLX_PACKAGES:
+            return jsonify({'error': 'Invalid package'}), 400
+        
+        pkg = BFLX_PACKAGES[package_type]
+        
+        async def create_invoice_link():
+            try:
+                invoice_link = await telegram_app.bot.create_invoice_link(
+                    title=pkg['name'],
+                    description=f"احصل على {pkg['bflx']:,} BFLX",
+                    payload=f"{package_type}_{telegram_id}_{int(datetime.utcnow().timestamp())}",
+                    provider_token="",
+                    currency="XTR",
+                    prices=[LabeledPrice(label=pkg['name'], amount=pkg['stars'])]
+                )
+                return invoice_link
+            except Exception as e:
+                logger.error(f"Error creating invoice: {e}")
+                return None
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        invoice_link = loop.run_until_complete(create_invoice_link())
+        loop.close()
+        
+        if invoice_link:
+            return jsonify({
+                'success': True,
+                'invoice_link': invoice_link,
+                'package': pkg['name'],
+                'stars': pkg['stars'],
+                'bflx': pkg['bflx']
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to create invoice'}), 500
+            
+    except Exception as e:
+        logger.error(f"Error in create_invoice endpoint: {e}")
+        return jsonify({'error': 'Server error'}), 500
+
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
     """جلب ترتيب أفضل اللاعبين"""
@@ -998,6 +1114,8 @@ def main():
     
     telegram_app.add_handler(CommandHandler("start", start))
     telegram_app.add_handler(CallbackQueryHandler(button_callback))
+    telegram_app.add_handler(PreCheckoutQueryHandler(pre_checkout_query_handler))
+    telegram_app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_handler))
     
     logger.info("Setting up webhook...")
     loop = asyncio.new_event_loop()

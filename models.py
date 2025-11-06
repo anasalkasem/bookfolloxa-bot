@@ -110,6 +110,20 @@ class Leaderboard(Base):
     updated_at = Column(DateTime, default=datetime.utcnow)
 
 
+class Payment(Base):
+    __tablename__ = 'payments'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey('users.id'))
+    charge_id = Column(String(255), unique=True)
+    invoice_payload = Column(String(255))
+    amount_stars = Column(Integer)
+    amount_bflx = Column(BigInteger)
+    status = Column(String(50), default='pending')
+    created_at = Column(DateTime, default=datetime.utcnow)
+    paid_at = Column(DateTime, nullable=True)
+
+
 engine = create_engine(config.DATABASE_URL)
 Base.metadata.create_all(engine)
 SessionLocal = sessionmaker(bind=engine)
