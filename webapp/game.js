@@ -12,7 +12,8 @@ const gameState = {
     totalReferralEarnings: 0,
     settings: {
         sound: true,
-        vibration: true
+        vibration: true,
+        music: true
     },
     userGender: 'male', // 'male' or 'female'
     lastOnline: Date.now(),
@@ -20,6 +21,11 @@ const gameState = {
     dailyRewardDay: 0,
     lastDailyClaim: 0
 };
+
+// ===== MUSIC SYSTEM =====
+let musicContext = null;
+let musicGain = null;
+let isPlaying = false;
 
 // ===== CONSTANTS =====
 const ENERGY_REGEN_RATE = 1;
@@ -164,6 +170,14 @@ function setupEventListeners() {
 
 // ===== CHARACTER TAP HANDLER =====
 function handleCharacterTap(e) {
+    if (isPlaying && !musicContext) {
+        initBackgroundMusic();
+        if (musicContext && musicContext.state === 'suspended') {
+            musicContext.resume();
+        }
+        playMelody();
+    }
+    
     if (gameState.energy < gameState.tapPower) {
         showNotification('⚡ Not enough energy!', 'error');
         shakeCharacter();
@@ -768,6 +782,9 @@ function loadGameState() {
         updateGenderButtons();
         console.log('💾 Game loaded!');
     }
+    
+    isPlaying = !!gameState.settings.music;
+    updateMusicButtonState();
 }
 
 function updateGenderButtons() {
@@ -1261,6 +1278,106 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// ===== MUSIC SYSTEM =====
+function initBackgroundMusic() {
+    if (!musicContext) {
+        musicContext = new (window.AudioContext || window.webkitAudioContext)();
+        musicGain = musicContext.createGain();
+        musicGain.connect(musicContext.destination);
+        musicGain.gain.value = 0.3;
+    }
+}
+
+function playMelody() {
+    if (!musicContext || !gameState.settings.music || !isPlaying) return;
+    
+    const melody = [
+        { note: 'C5', duration: 0.5 },
+        { note: 'E5', duration: 0.5 },
+        { note: 'G5', duration: 0.5 },
+        { note: 'A5', duration: 0.5 },
+        { note: 'G5', duration: 0.5 },
+        { note: 'E5', duration: 0.5 },
+        { note: 'D5', duration: 0.5 },
+        { note: 'E5', duration: 1.0 }
+    ];
+    
+    const noteFrequencies = {
+        'C5': 523.25, 'D5': 587.33, 'E5': 659.25,
+        'F5': 698.46, 'G5': 783.99, 'A5': 880.00,
+        'B5': 987.77
+    };
+    
+    let time = musicContext.currentTime;
+    let totalDuration = 0;
+    
+    melody.forEach(({ note, duration }) => {
+        const oscillator = musicContext.createOscillator();
+        const gainNode = musicContext.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.value = noteFrequencies[note];
+        
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(0.2, time + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, time + duration);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(musicGain);
+        
+        oscillator.start(time);
+        oscillator.stop(time + duration);
+        
+        time += duration;
+        totalDuration += duration;
+    });
+    
+    if (isPlaying) {
+        setTimeout(() => playMelody(), totalDuration * 1000);
+    }
+}
+
+function toggleMusic() {
+    const btn = document.getElementById('musicToggleBtn');
+    
+    if (!musicContext) {
+        initBackgroundMusic();
+    }
+    
+    if (musicContext && musicContext.state === 'suspended') {
+        musicContext.resume();
+    }
+    
+    isPlaying = !isPlaying;
+    gameState.settings.music = isPlaying;
+    
+    if (isPlaying) {
+        btn.classList.add('playing');
+        btn.classList.remove('muted');
+        playMelody();
+        showNotification('🎵 Music ON', 'success');
+    } else {
+        btn.classList.remove('playing');
+        btn.classList.add('muted');
+        showNotification('🔇 Music OFF', 'info');
+    }
+    
+    saveGameState();
+}
+
+function updateMusicButtonState() {
+    const btn = document.getElementById('musicToggleBtn');
+    if (!btn) return;
+    
+    if (gameState.settings.music) {
+        btn.classList.add('playing');
+        btn.classList.remove('muted');
+    } else {
+        btn.classList.remove('playing');
+        btn.classList.add('muted');
+    }
+}
+
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎮 Bookfolloxa Game Initialized!');
@@ -1302,4 +1419,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
     }
+    
 });
