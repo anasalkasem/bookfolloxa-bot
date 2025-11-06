@@ -65,6 +65,14 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
 **Recent Changes (November 06, 2025 - Latest Update):**
+- **✅ Payment System Full English Translation:** All payment buttons and messages now in English
+  - Package names: "Starter Package", "Pro Package", "King Package", "Legend Package" (previously Arabic)
+  - Payment success message: "Payment Successful! You received: X BFLX"
+  - Error messages: "Invalid package type", "Payment amount is incorrect", etc.
+  - All Telegram Stars payment flow now 100% English
+  - Consistent user experience across all languages
+
+**Recent Changes (November 06, 2025 - Previous Update):**
 - **✅ Statistics & Balance Tracking System:** Comprehensive tracking and display
   - Added totalEarned field to track lifetime BFLX earnings (never decreases)
   - All BFLX-earning actions now update totalEarned: taps, mining, tasks, level-ups, payments, ads, rewards

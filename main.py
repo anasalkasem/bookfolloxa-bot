@@ -770,10 +770,10 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await upgrade_feature_callback(update, context)
 
 BFLX_PACKAGES = {
-    'starter': {'stars': 50, 'bflx': 2500, 'name': 'باقة المبتدئين'},
-    'pro': {'stars': 200, 'bflx': 10000, 'name': 'باقة المحترف'},
-    'king': {'stars': 800, 'bflx': 50000, 'name': 'باقة الملك'},
-    'legend': {'stars': 2000, 'bflx': 150000, 'name': 'باقة الأسطورة'}
+    'starter': {'stars': 50, 'bflx': 2500, 'name': 'Starter Package'},
+    'pro': {'stars': 200, 'bflx': 10000, 'name': 'Pro Package'},
+    'king': {'stars': 800, 'bflx': 50000, 'name': 'King Package'},
+    'legend': {'stars': 2000, 'bflx': 150000, 'name': 'Legend Package'}
 }
 
 async def pre_checkout_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -785,7 +785,7 @@ async def pre_checkout_query_handler(update: Update, context: ContextTypes.DEFAU
         logger.info(f"Pre-checkout approved for user {query.from_user.id}, payload: {query.invoice_payload}")
     except Exception as e:
         logger.error(f"Pre-checkout error: {e}")
-        await query.answer(ok=False, error_message="عذراً، حدث خطأ. حاول مرة أخرى.")
+        await query.answer(ok=False, error_message="Sorry, an error occurred. Please try again.")
 
 async def successful_payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle successful Telegram Stars payment"""
@@ -802,7 +802,7 @@ async def successful_payment_handler(update: Update, context: ContextTypes.DEFAU
         
         if existing_payment:
             logger.warning(f"Duplicate payment detected: {payment.telegram_payment_charge_id}")
-            await message.reply_text("⚠️ هذا الدفع تم معالجته مسبقاً!")
+            await message.reply_text("⚠️ This payment has already been processed!")
             db.close()
             return
         
@@ -811,7 +811,7 @@ async def successful_payment_handler(update: Update, context: ContextTypes.DEFAU
         
         if package_type not in BFLX_PACKAGES:
             logger.error(f"Invalid package type in payload: {package_type}")
-            await message.reply_text("❌ نوع الباقة غير صحيح. يرجى التواصل مع الدعم.")
+            await message.reply_text("❌ Invalid package type. Please contact support.")
             db.close()
             return
         
@@ -819,7 +819,7 @@ async def successful_payment_handler(update: Update, context: ContextTypes.DEFAU
         
         if payment.total_amount != pkg['stars']:
             logger.error(f"Payment amount mismatch: expected {pkg['stars']}, got {payment.total_amount}")
-            await message.reply_text("❌ مبلغ الدفع غير صحيح. يرجى التواصل مع الدعم.")
+            await message.reply_text("❌ Payment amount is incorrect. Please contact support.")
             db.close()
             return
         
@@ -839,10 +839,10 @@ async def successful_payment_handler(update: Update, context: ContextTypes.DEFAU
         db.commit()
         
         await message.reply_text(
-            f"✅ تم الدفع بنجاح!\n\n"
-            f"🎁 حصلت على: {pkg['bflx']:,} BFLX\n"
-            f"💰 رصيدك الجديد: {user.balance:,} BFLX\n\n"
-            f"شكراً لدعمك! 🌟"
+            f"✅ Payment Successful!\n\n"
+            f"🎁 You received: {pkg['bflx']:,} BFLX\n"
+            f"💰 Your new balance: {user.balance:,} BFLX\n\n"
+            f"Thank you for your support! 🌟"
         )
         
         logger.info(f"✅ Payment successful: User {user.id} bought {package_type} ({pkg['bflx']:,} BFLX) for {payment.total_amount} stars - Charge ID: {payment.telegram_payment_charge_id}")
@@ -851,7 +851,7 @@ async def successful_payment_handler(update: Update, context: ContextTypes.DEFAU
         
     except Exception as e:
         logger.error(f"Error processing payment: {e}", exc_info=True)
-        await message.reply_text("❌ حدث خطأ في معالجة الدفع. يرجى التواصل مع الدعم.")
+        await message.reply_text("❌ An error occurred while processing the payment. Please contact support.")
 
 app = Flask(__name__)
 
