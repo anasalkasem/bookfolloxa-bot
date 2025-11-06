@@ -231,12 +231,12 @@ const translations = {
         language: "🌐 اللغة",
         
         // Store Page
-        bflxPackages: "💎 باقات BFLX",
-        buyWithStars: "اشترِ بنجوم تيليجرام",
-        starter: "المبتدئ",
-        pro: "المحترف",
-        king: "الملك",
-        legend: "الأسطورة",
+        bflxPackages: "💎 BFLX Packages",
+        buyWithStars: "Buy with Telegram Stars",
+        starter: "Starter",
+        pro: "Pro",
+        king: "King",
+        legend: "Legend",
         socialMediaServices: "📱 خدمات التواصل الاجتماعي",
         instagramFollowers: "100 متابع إنستجرام",
         tiktokLikes: "1000 إعجاب تيك توك",

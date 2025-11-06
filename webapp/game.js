@@ -960,10 +960,10 @@ function updateGenderButtons() {
 // ===== STORE & MONETIZATION =====
 async function buyBFLX(packageType) {
     const packages = {
-        starter: { stars: 50, bflx: 2500, name: 'باقة المبتدئين' },
-        pro: { stars: 200, bflx: 10000, name: 'باقة المحترف' },
-        king: { stars: 800, bflx: 50000, name: 'باقة الملك' },
-        legend: { stars: 2000, bflx: 150000, name: 'باقة الأسطورة' }
+        starter: { stars: 50, bflx: 2500, name: 'Starter Package' },
+        pro: { stars: 200, bflx: 10000, name: 'Pro Package' },
+        king: { stars: 800, bflx: 50000, name: 'King Package' },
+        legend: { stars: 2000, bflx: 150000, name: 'Legend Package' }
     };
     
     const pkg = packages[packageType];
