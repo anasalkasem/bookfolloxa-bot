@@ -415,18 +415,40 @@ function renderReferralPage() {
     
     // Render referrals list
     const referralsList = document.getElementById('referralsList');
+    referralsList.innerHTML = '';
+    
     if (gameState.referrals.length === 0) {
-        referralsList.innerHTML = '<p style="text-align: center; color: #a0aec0;">No referrals yet. Start inviting!</p>';
+        const emptyMessage = document.createElement('p');
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.color = '#a0aec0';
+        emptyMessage.textContent = 'No referrals yet. Start inviting!';
+        referralsList.appendChild(emptyMessage);
     } else {
-        referralsList.innerHTML = gameState.referrals.map(ref => `
-            <div class="task-card">
-                <div class="task-info">
-                    <div class="task-title">${ref.name}</div>
-                    <div class="task-progress">Earned: ${formatNumber(ref.earnings)}</div>
-                </div>
-                <div class="task-reward">💰</div>
-            </div>
-        `).join('');
+        gameState.referrals.forEach(ref => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            
+            const taskInfo = document.createElement('div');
+            taskInfo.className = 'task-info';
+            
+            const taskTitle = document.createElement('div');
+            taskTitle.className = 'task-title';
+            taskTitle.textContent = ref.name;
+            
+            const taskProgress = document.createElement('div');
+            taskProgress.className = 'task-progress';
+            taskProgress.textContent = `Earned: ${formatNumber(ref.earnings)}`;
+            
+            const taskReward = document.createElement('div');
+            taskReward.className = 'task-reward';
+            taskReward.textContent = '💰';
+            
+            taskInfo.appendChild(taskTitle);
+            taskInfo.appendChild(taskProgress);
+            card.appendChild(taskInfo);
+            card.appendChild(taskReward);
+            referralsList.appendChild(card);
+        });
     }
 }
 
