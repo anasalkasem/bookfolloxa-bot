@@ -27,69 +27,6 @@ body {
     min-height: 100vh;
 }
 
-/* ===== MUSIC TOGGLE BUTTON ===== */
-.music-toggle-btn {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 100;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.music-toggle-btn:hover {
-    transform: scale(1.1);
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 6px 30px rgba(124, 58, 237, 0.4);
-}
-
-.music-toggle-btn.playing {
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-    border-color: var(--accent-cyan);
-    animation: pulse-music 2s infinite;
-}
-
-.music-icon {
-    font-size: 24px;
-    transition: all 0.3s ease;
-}
-
-.music-toggle-btn.playing .music-icon {
-    animation: rotate-music 3s infinite linear;
-}
-
-.music-toggle-btn.muted .music-icon {
-    opacity: 0.5;
-}
-
-@keyframes pulse-music {
-    0%, 100% {
-        box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
-    }
-    50% {
-        box-shadow: 0 0 30px rgba(0, 217, 255, 0.6);
-    }
-}
-
-@keyframes rotate-music {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 /* ===== WATERMARK CONTAINER ===== */
 .watermark-container {
     position: fixed;

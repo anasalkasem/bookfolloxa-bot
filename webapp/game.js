@@ -13,7 +13,7 @@ const gameState = {
     settings: {
         sound: true,
         vibration: true,
-        music: true
+        music: false
     },
     userGender: 'male', // 'male' or 'female'
     lastOnline: Date.now(),
