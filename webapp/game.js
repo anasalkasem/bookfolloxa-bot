@@ -82,10 +82,7 @@ function initGame() {
     }
     
     // Initialize level title
-    const userLevelElement = document.querySelector('.user-level');
-    if (userLevelElement) {
-        userLevelElement.textContent = getLevelTitle(gameState.level);
-    }
+    updateLevelDisplay();
     
     // Set character based on gender
     updateCharacter();
@@ -122,6 +119,21 @@ function updateCharacterSize() {
     const scale = Math.min(maxScale, baseScale + ((level - 1) * 0.016));
     
     character.style.transform = `scale(${scale})`;
+}
+
+// ===== UPDATE LEVEL DISPLAY =====
+function updateLevelDisplay() {
+    const levelTitle = getLevelTitle(gameState.level);
+    const userLevelTitleElement = document.getElementById('userLevelTitle');
+    const currentLevelElement = document.getElementById('currentLevel');
+    
+    if (userLevelTitleElement) {
+        userLevelTitleElement.textContent = levelTitle;
+    }
+    
+    if (currentLevelElement) {
+        currentLevelElement.textContent = gameState.level;
+    }
 }
 
 // ===== LEVEL SYSTEM (50 LEVELS) =====
@@ -186,11 +198,7 @@ function checkLevelUp() {
     
     if (leveledUp) {
         // Update level title in UI
-        const userLevelElement = document.querySelector('.user-level');
-        if (userLevelElement) {
-            userLevelElement.textContent = getLevelTitle(gameState.level);
-        }
-        
+        updateLevelDisplay();
         updateUI();
         saveGameState();
     }
@@ -777,6 +785,9 @@ function updateUI() {
     document.getElementById('energyFill').style.width = `${energyPercent}%`;
     document.getElementById('currentEnergy').textContent = Math.floor(gameState.energy);
     document.getElementById('maxEnergy').textContent = gameState.maxEnergy;
+    
+    // Update level display
+    updateLevelDisplay();
     
     // Update character size based on level
     updateCharacterSize();

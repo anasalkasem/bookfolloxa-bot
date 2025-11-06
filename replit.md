@@ -64,7 +64,16 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Code Organization:** Modular structure with `main.py` (bot and Flask server), `models.py` (DB models), `game_logic.py`, `config.py`, `requirements.txt`, `webapp/` for WebApp, and `.env` for environment variables.
 - **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
 
-**Recent Changes (November 06, 2025 - Latest):**
+**Recent Changes (November 06, 2025 - Latest Update):**
+- **✅ Enhanced Header UI:** Improved header design for better clarity
+  - Stat cards (BFLX/Followers) now have circular gradient backgrounds with purple/cyan theme
+  - Removed white backgrounds, replaced with glassmorphism design
+  - Added drop-shadow effects to icons for depth
+  - Hover animations on stat cards
+  - Level display now shows "Level X/50" for clear progression tracking
+  - User can see current level and max level (50) at a glance
+
+**Recent Changes (November 06, 2025 - Previous):**
 - **✅ Advanced Level System (50 Levels):** Implemented balanced progression system
   - Balanced exponential growth formula for realistic progression
   - Level requirements: Level 10 (~100K BFLX), Level 25 (~1.5M BFLX), Level 40 (~34M BFLX), Level 50 (~79M BFLX)
