@@ -1283,8 +1283,17 @@ function initBackgroundMusic() {
     if (!musicContext) {
         musicContext = new (window.AudioContext || window.webkitAudioContext)();
         musicGain = musicContext.createGain();
-        musicGain.connect(musicContext.destination);
-        musicGain.gain.value = 0.25;
+        
+        const compressor = musicContext.createDynamicsCompressor();
+        compressor.threshold.value = -20;
+        compressor.knee.value = 10;
+        compressor.ratio.value = 4;
+        compressor.attack.value = 0.003;
+        compressor.release.value = 0.25;
+        
+        musicGain.connect(compressor);
+        compressor.connect(musicContext.destination);
+        musicGain.gain.value = 0.28;
     }
 }
 
@@ -1292,68 +1301,76 @@ function playMelody() {
     if (!musicContext || !gameState.settings.music || !isPlaying) return;
     
     const melody = [
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
+        { note: 'D5', duration: 0.6, velocity: 0.35, vibrato: true },
+        { note: 'E5b', duration: 0.3, velocity: 0.25 },
+        { note: 'D5', duration: 0.3, velocity: 0.3 },
+        { note: 'C5', duration: 0.6, velocity: 0.3 },
         { note: 'D5', duration: 0.4, velocity: 0.25 },
+        { note: 'E5b', duration: 0.8, velocity: 0.35, vibrato: true },
+        { note: 'F5', duration: 0.4, velocity: 0.3 },
+        { note: 'E5b', duration: 0.4, velocity: 0.28 },
+        { note: 'D5', duration: 0.6, velocity: 0.35, vibrato: true },
         { note: 'C5', duration: 0.4, velocity: 0.25 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'E5', duration: 0.8, velocity: 0.35 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'D5', duration: 0.8, velocity: 0.3 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'G5', duration: 0.4, velocity: 0.35 },
-        { note: 'G5', duration: 0.8, velocity: 0.35 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'C5', duration: 0.4, velocity: 0.25 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'E5', duration: 0.4, velocity: 0.3 },
-        { note: 'D5', duration: 0.4, velocity: 0.25 },
-        { note: 'C5', duration: 1.2, velocity: 0.35 }
+        { note: 'Bb4', duration: 0.4, velocity: 0.25 },
+        { note: 'C5', duration: 1.0, velocity: 0.35, vibrato: true },
+        { note: 'D5', duration: 0.4, velocity: 0.3 },
+        { note: 'E5b', duration: 0.4, velocity: 0.28 },
+        { note: 'F5', duration: 0.6, velocity: 0.35 },
+        { note: 'E5b', duration: 0.3, velocity: 0.25 },
+        { note: 'D5', duration: 0.3, velocity: 0.3 },
+        { note: 'E5b', duration: 0.4, velocity: 0.28 },
+        { note: 'D5', duration: 0.4, velocity: 0.3 },
+        { note: 'C5', duration: 0.8, velocity: 0.35, vibrato: true },
+        { note: 'Bb4', duration: 0.4, velocity: 0.25 },
+        { note: 'C5', duration: 0.6, velocity: 0.3 },
+        { note: 'D5', duration: 1.4, velocity: 0.4, vibrato: true }
     ];
     
     const bassLine = [
-        { note: 'C3', duration: 1.6 },
-        { note: 'G3', duration: 1.6 },
-        { note: 'C3', duration: 1.6 },
-        { note: 'G3', duration: 1.6 },
-        { note: 'C3', duration: 1.6 },
-        { note: 'G3', duration: 1.6 },
-        { note: 'C3', duration: 3.2 }
+        { note: 'D3', duration: 2.4 },
+        { note: 'C3', duration: 2.4 },
+        { note: 'Bb2', duration: 2.4 },
+        { note: 'C3', duration: 2.4 },
+        { note: 'D3', duration: 4.8 }
     ];
     
     const noteFrequencies = {
-        'C3': 130.81, 'D3': 146.83, 'E3': 164.81, 'F3': 174.61, 'G3': 196.00,
-        'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00,
-        'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99, 'A5': 880.00, 'B5': 987.77
+        'Bb2': 116.54, 'C3': 130.81, 'D3': 146.83, 'E3b': 155.56, 'F3': 174.61, 'G3': 196.00,
+        'Bb3': 233.08, 'C4': 261.63, 'D4': 293.66, 'E4b': 311.13, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00,
+        'Bb4': 466.16, 'C5': 523.25, 'D5': 587.33, 'E5b': 622.25, 'F5': 698.46, 'G5': 783.99, 'A5': 880.00
     };
     
     let time = musicContext.currentTime;
     let totalDuration = 0;
     
-    melody.forEach(({ note, duration, velocity }) => {
+    melody.forEach(({ note, duration, velocity, vibrato }) => {
         const oscillator = musicContext.createOscillator();
         const gainNode = musicContext.createGain();
         const filterNode = musicContext.createBiquadFilter();
         
-        oscillator.type = 'triangle';
-        oscillator.frequency.value = noteFrequencies[note];
+        oscillator.type = 'sawtooth';
+        const freq = noteFrequencies[note];
+        oscillator.frequency.value = freq;
+        
+        if (vibrato) {
+            const lfo = musicContext.createOscillator();
+            const lfoGain = musicContext.createGain();
+            lfo.frequency.value = 5;
+            lfoGain.gain.value = 8;
+            lfo.connect(lfoGain);
+            lfoGain.connect(oscillator.frequency);
+            lfo.start(time);
+            lfo.stop(time + duration);
+        }
         
         filterNode.type = 'lowpass';
-        filterNode.frequency.value = 2000;
-        filterNode.Q.value = 1;
+        filterNode.frequency.value = 1800;
+        filterNode.Q.value = 2;
         
         gainNode.gain.setValueAtTime(0, time);
-        gainNode.gain.linearRampToValueAtTime(velocity, time + 0.05);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, time + duration);
+        gainNode.gain.linearRampToValueAtTime(velocity * 0.8, time + 0.03);
+        gainNode.gain.linearRampToValueAtTime(velocity, time + 0.08);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, time + duration - 0.05);
         
         oscillator.connect(filterNode);
         filterNode.connect(gainNode);
