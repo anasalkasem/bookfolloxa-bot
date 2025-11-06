@@ -29,10 +29,11 @@ def validate_telegram_webapp_data(init_data: str, bot_token: str) -> dict:
         data_check_arr = [f"{k}={v}" for k, v in sorted(data_dict.items())]
         data_check_string = '\n'.join(data_check_arr)
         
-        # Compute secret key (CORRECT: bot_token is key, "WebAppData" is message)
+        # Compute secret key: HMAC-SHA256("WebAppData", bot_token)
+        # NOTE: "WebAppData" is the key, bot_token is the message
         secret_key = hmac.new(
-            key=bot_token.encode(),
-            msg=b"WebAppData",
+            key=b"WebAppData",
+            msg=bot_token.encode(),
             digestmod=hashlib.sha256
         ).digest()
         
