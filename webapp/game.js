@@ -823,20 +823,42 @@ async function buyBFLX(packageType) {
         const data = await response.json();
         
         if (data.success && data.invoice_link) {
-            tg.openInvoice(data.invoice_link, (status) => {
+            tg.openInvoice(data.invoice_link, async (status) => {
                 if (status === 'paid') {
-                    gameState.bflx += pkg.bflx;
-                    showNotification(`✅ Payment successful! +${formatNumber(pkg.bflx)} BFLX`, 'success');
-                    updateUI();
-                    saveGameState();
+                    showNotification(`⏳ Processing payment... Please wait`, 'info');
+                    
+                    // Wait for backend to process payment
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Sync with backend to get updated balance
+                    if (typeof syncWithBackend === 'function') {
+                        const synced = await syncWithBackend();
+                        if (synced) {
+                            showNotification(`✅ Payment successful! +${formatNumber(pkg.bflx)} BFLX`, 'success');
+                            playSound('purchase');
+                            triggerHaptic('medium');
+                        } else {
+                            showNotification('⏳ Payment is being processed. Check your balance in a moment.', 'info');
+                        }
+                    } else {
+                        // Fallback: add locally and sync later
+                        gameState.bflx += pkg.bflx;
+                        showNotification(`✅ Payment successful! +${formatNumber(pkg.bflx)} BFLX`, 'success');
+                        updateUI();
+                        saveGameState();
+                        playSound('purchase');
+                        triggerHaptic('medium');
+                    }
                 } else if (status === 'cancelled') {
                     showNotification('❌ Payment cancelled', 'error');
                 } else if (status === 'failed') {
-                    showNotification('❌ Payment failed', 'error');
+                    showNotification('❌ Payment failed. Please try again.', 'error');
                 }
             });
         } else {
-            showNotification('❌ Failed to create invoice', 'error');
+            const errorMsg = data.error || 'Failed to create invoice';
+            showNotification(`❌ ${errorMsg}`, 'error');
+            console.error('Invoice creation failed:', data);
         }
     } catch (error) {
         console.error('Payment error:', error);

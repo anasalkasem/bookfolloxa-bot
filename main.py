@@ -1040,6 +1040,7 @@ def create_invoice():
         invoice_link = loop.run_until_complete(create_invoice_link())
         
         if invoice_link:
+            logger.info(f"✅ Invoice created for user {telegram_id}: {package_type} ({pkg['stars']} stars)")
             return jsonify({
                 'success': True,
                 'invoice_link': invoice_link,
@@ -1048,11 +1049,12 @@ def create_invoice():
                 'bflx': pkg['bflx']
             }), 200
         else:
-            return jsonify({'error': 'Failed to create invoice'}), 500
+            logger.error(f"❌ Failed to create invoice for user {telegram_id}: {package_type}")
+            return jsonify({'success': False, 'error': 'Failed to create invoice. Please try again.'}), 500
             
     except Exception as e:
-        logger.error(f"Error in create_invoice endpoint: {e}")
-        return jsonify({'error': 'Server error'}), 500
+        logger.error(f"Error in create_invoice endpoint: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': 'Server error. Please try again.'}), 500
 
 @app.route('/api/leaderboard', methods=['GET'])
 def get_leaderboard():
