@@ -544,19 +544,39 @@ function handleNavigation(navItem) {
 function renderInfluencers() {
     const list = document.getElementById('influencerList');
     
-    list.innerHTML = influencerTypes.map(inf => `
-        <div class="influencer-card ${gameState.bflx >= inf.cost && gameState.level >= inf.level ? '' : 'locked'}">
-            <div class="influencer-icon">${inf.icon}</div>
-            <div class="influencer-info">
-                <div class="influencer-name">${inf.name}</div>
-                <div class="influencer-income">⛏️ ${formatNumber(inf.income)}/hour</div>
+    list.innerHTML = influencerTypes.map(inf => {
+        const canAfford = gameState.bflx >= inf.cost;
+        const levelUnlocked = gameState.level >= inf.level;
+        const canHire = canAfford && levelUnlocked;
+        
+        let buttonText = `💎 ${formatNumber(inf.cost)}`;
+        let buttonClass = 'influencer-hire-btn';
+        
+        if (!levelUnlocked) {
+            buttonText = `🔒 Level ${inf.level}`;
+            buttonClass += ' level-locked';
+        } else if (!canAfford) {
+            buttonClass += ' insufficient-funds';
+        }
+        
+        return `
+            <div class="influencer-card ${canHire ? '' : 'locked'}">
+                <div class="influencer-header">
+                    <div class="influencer-icon">${inf.icon}</div>
+                    ${!levelUnlocked ? `<div class="level-requirement">Requires Level ${inf.level}</div>` : ''}
+                </div>
+                <div class="influencer-info">
+                    <div class="influencer-name">${inf.name}</div>
+                    <div class="influencer-income">⛏️ ${formatNumber(inf.income)}/hour</div>
+                    <div class="influencer-cost-display">Cost: ${formatNumber(inf.cost)} BFLX</div>
+                </div>
+                <button class="${buttonClass}" onclick="hireInfluencer(${inf.id})" 
+                        ${canHire ? '' : 'disabled'}>
+                    ${buttonText}
+                </button>
             </div>
-            <button class="influencer-hire-btn" onclick="hireInfluencer(${inf.id})" 
-                    ${gameState.bflx >= inf.cost && gameState.level >= inf.level ? '' : 'disabled'}>
-                💎 ${formatNumber(inf.cost)}
-            </button>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function hireInfluencer(id) {
