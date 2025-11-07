@@ -1,0 +1,454 @@
+# 🚀 Bookfolloxa Bot - Deployment Guide (Fixed Version)
+
+## 🔧 What Was Fixed
+
+### Critical Issues Resolved:
+
+1. **✅ Bot Initialization Fixed**
+   - Moved initialization from `main()` function to module level
+   - Now runs when Gunicorn imports the module
+   - `telegram_app` is properly initialized before any requests
+
+2. **✅ Database Tables Creation Fixed**
+   - `init_db()` now runs at module level
+   - Database tables are created automatically on deployment
+   - No more "table does not exist" errors
+
+3. **✅ Payment System Fixed**
+   - `telegram_app.bot.create_invoice_link()` now works
+   - Telegram Stars payment integration functional
+   - No more `AttributeError: 'NoneType' object has no attribute 'bot'`
+
+4. **✅ Webhook Setup Fixed**
+   - Webhook is configured automatically at startup
+   - Bot menu button set to open game directly
+   - Proper error handling if webhook setup fails
+
+---
+
+## 📦 Files in This Package
+
+```
+bookfolloxa_fixed/
+├── main.py                 # Fixed bot code with module-level initialization
+├── requirements.txt        # Python dependencies
+├── Procfile               # Railway/Heroku deployment config
+├── runtime.txt            # Python version specification
+├── .env.example           # Environment variables template
+├── DEPLOYMENT_GUIDE.md    # This file
+└── README.md              # Original project README
+```
+
+---
+
+## 🚀 Deployment Instructions for Railway
+
+### Step 1: Backup Current Code
+
+Before deploying the fix, backup your current code:
+
+```bash
+# Using Railway CLI
+railway run cat main.py > main_backup.py
+```
+
+### Step 2: Replace main.py
+
+1. **Option A: Using Railway Dashboard**
+   - Go to your Railway project
+   - Click on the **web** service
+   - Click **"Settings"** → **"Source"**
+   - If using GitHub:
+     - Replace `main.py` in your repository with the fixed version
+     - Push to GitHub
+     - Railway will auto-deploy
+
+2. **Option B: Using Railway CLI**
+   ```bash
+   # Navigate to your project directory
+   cd /path/to/your/project
+   
+   # Replace main.py with the fixed version
+   cp /path/to/bookfolloxa_fixed/main.py ./main.py
+   
+   # Deploy to Railway
+   railway up
+   ```
+
+### Step 3: Verify Environment Variables
+
+Make sure these variables are set in Railway Dashboard:
+
+Go to **web** service → **Variables** tab:
+
+- ✅ `TELEGRAM_BOT_TOKEN` - Your bot token from @BotFather
+- ✅ `DATABASE_URL` - Automatically set by Railway PostgreSQL service
+- ✅ `PORT` - Automatically set by Railway (usually 5000)
+
+**Optional:**
+- `WALLET_PAY_TOKEN` - If using Wallet Pay integration
+
+### Step 4: Deploy and Monitor Logs
+
+1. After pushing the code, Railway will automatically build and deploy
+2. Go to **web** service → **Deployments** tab
+3. Click on the latest deployment
+4. Watch the **Build Logs** and **Deploy Logs**
+
+**Look for these success messages:**
+
+```
+🚀 Initializing Bookfolloxa bot...
+✅ Database initialized successfully
+✅ Telegram bot application created
+✅ Bot handlers registered
+Setting up webhook: https://web-production-0fc0e1.up.railway.app/webhook
+✅ Bot menu button set to open game
+✅ Bot commands cleared
+✅ Webhook configured: https://web-production-0fc0e1.up.railway.app/webhook
+✅ Webhook setup completed
+✅ Bot initialization complete!
+[INFO] Starting gunicorn 21.2.0
+[INFO] Listening at: http://0.0.0.0:5000
+[INFO] Using worker: sync
+[INFO] Booting worker with pid: ...
+```
+
+### Step 5: Verify Database Tables Were Created
+
+Using Railway CLI:
+
+```bash
+# Connect to Railway PostgreSQL
+railway run psql $DATABASE_URL -c "\dt"
+```
+
+**Expected output:**
+
+```
+                List of relations
+ Schema |        Name         | Type  |  Owner
+--------+---------------------+-------+----------
+ public | mystery_boxes       | table | postgres
+ public | payments            | table | postgres
+ public | users               | table | postgres
+ public | wallet_transactions | table | postgres
+(4 rows)
+```
+
+If tables are missing, check the deployment logs for database errors.
+
+### Step 6: Verify Users Table Schema
+
+```bash
+railway run psql $DATABASE_URL -c "\d users"
+```
+
+**Look for these columns:**
+- `id` (bigint, primary key)
+- `username` (varchar)
+- `first_name` (varchar)
+- `balance` (bigint)
+- `energy` (integer)
+- `followers` (bigint)
+- `level` (integer)
+- `tap_power` (integer)
+- `influence_points` (bigint) ← **Should exist now!**
+- `diamonds` (integer) ← **Should exist now!**
+- `referrer_id` (bigint)
+- `referral_count` (integer)
+- `last_active` (timestamp)
+- `created_at` (timestamp)
+
+### Step 7: Test the Bot
+
+1. **Open Telegram** and find **@Bookfolloxa_bot**
+2. Send `/start` command
+3. **Expected response:**
+   ```
+   🎮 Bookfolloxa - Influencer Empire 🎮
+   
+   ⚡️ Welcome [Your Name]! ⚡️
+   
+   🎯 Build Your Social Media Empire!
+   
+   📱 Click the button below to start the game
+   💰 Collect followers & BFLX
+   👥 Hire influencers and build your team
+   🏆 Be the first in the global ranking!
+   
+   ━━━━━━━━━━━━━━━━━━━━━━
+      ✨ Click Play Now! ✨
+   ━━━━━━━━━━━━━━━━━━━━━━
+   ```
+4. Click **"🎮 Play Now 🎮"** button
+5. **Game should load** at: `https://web-production-0fc0e1.up.railway.app/webapp/`
+
+### Step 8: Test Payment System
+
+1. In the game, go to **Shop** or **Premium** section
+2. Try to purchase BFLX or Diamonds
+3. Click on a package
+4. **Expected:** Telegram Stars invoice link is generated
+5. **No errors** in Railway logs
+
+---
+
+## 🔍 What Changed in main.py
+
+### ❌ Before (Broken Code):
+
+```python
+# Line 1422
+telegram_app = None  # ❌ Never initialized with Gunicorn
+
+# Line 1511
+def main():
+    global telegram_app
+    import asyncio
+    
+    logger.info("Initializing database...")
+    init_db()  # ❌ Never runs
+    
+    logger.info("Initializing bot...")
+    telegram_app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()  # ❌ Never runs
+    
+    telegram_app.add_handler(CommandHandler("start", start))
+    telegram_app.add_handler(CallbackQueryHandler(button_callback))
+    # ...
+    
+    logger.info("Setting up webhook...")
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(setup_webhook(telegram_app))  # ❌ Never runs
+    loop.close()
+    
+    logger.info("Starting Flask server with webhook mode...")
+    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+
+if __name__ == '__main__':
+    main()  # ❌ Never called by Gunicorn
+```
+
+**Why it failed:**
+- Railway runs: `gunicorn --bind 0.0.0.0:$PORT --workers 2 main:app`
+- Gunicorn imports `main.py` and uses the `app` object
+- It **never calls `main()`** because `if __name__ == '__main__'` is `False` when imported
+- Result: `telegram_app` stays `None`, database tables are never created
+
+---
+
+### ✅ After (Fixed Code):
+
+```python
+# Module level (runs when Gunicorn imports the file)
+
+# ============================================================================
+# CRITICAL FIX: Initialize bot at module level (runs when Gunicorn imports)
+# ============================================================================
+logger.info("🚀 Initializing Bookfolloxa bot...")
+
+# Initialize database first
+try:
+    init_db()  # ✅ Runs on import
+    logger.info("✅ Database initialized successfully")
+except Exception as e:
+    logger.error(f"❌ Database initialization failed: {e}")
+    raise
+
+# Initialize Telegram bot
+try:
+    telegram_app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()  # ✅ Runs on import
+    logger.info("✅ Telegram bot application created")
+except Exception as e:
+    logger.error(f"❌ Failed to create Telegram bot: {e}")
+    raise
+
+# Add handlers to the application
+telegram_app.add_handler(CommandHandler("start", start))
+telegram_app.add_handler(CallbackQueryHandler(button_callback))
+telegram_app.add_handler(PreCheckoutQueryHandler(pre_checkout_query_handler))
+telegram_app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_handler))
+logger.info("✅ Bot handlers registered")
+
+# Setup webhook asynchronously
+async def setup_webhook_async(application: Application) -> None:
+    """Setup webhook with Telegram"""
+    from telegram import MenuButtonWebApp, WebAppInfo
+    try:
+        await application.initialize()
+        
+        webhook_url = 'https://web-production-0fc0e1.up.railway.app/webhook'
+        logger.info(f"Setting up webhook: {webhook_url}")
+        
+        await application.bot.delete_webhook(drop_pending_updates=True)
+        await asyncio.sleep(2)
+        
+        await application.bot.set_webhook(
+            url=webhook_url,
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=True
+        )
+        
+        webapp_url = 'https://web-production-0fc0e1.up.railway.app/webapp/'
+        menu_button = MenuButtonWebApp(
+            text="🎮 Play Now",
+            web_app=WebAppInfo(url=webapp_url)
+        )
+        await application.bot.set_chat_menu_button(menu_button=menu_button)
+        logger.info("✅ Bot menu button set to open game")
+        
+        await application.bot.set_my_commands([])
+        logger.info("✅ Bot commands cleared")
+        
+        webhook_info = await application.bot.get_webhook_info()
+        logger.info(f"✅ Webhook configured: {webhook_info.url}")
+        
+    except Exception as e:
+        logger.error(f"❌ Error setting up webhook: {e}")
+
+# Run webhook setup in a new event loop
+try:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(setup_webhook_async(telegram_app))  # ✅ Runs on import
+    loop.close()
+    logger.info("✅ Webhook setup completed")
+except Exception as e:
+    logger.error(f"⚠️ Webhook setup failed (will retry on first request): {e}")
+
+logger.info("✅ Bot initialization complete!")
+
+# ============================================================================
+# Flask Application
+# ============================================================================
+
+app = Flask(__name__)
+
+# ... (all Flask routes)
+
+# ============================================================================
+# Application Entry Point (for Gunicorn)
+# ============================================================================
+# Note: No main() function needed - initialization happens at module level
+# Gunicorn will import this module and use the 'app' object directly
+```
+
+**Why it works:**
+- Code at module level runs when Gunicorn imports `main.py`
+- `init_db()` creates database tables ✅
+- `telegram_app` is properly initialized ✅
+- Webhook is set up before any requests arrive ✅
+- No `main()` function needed - Gunicorn uses `app` directly ✅
+
+---
+
+## 🐛 Troubleshooting
+
+### Issue: Bot still shows `telegram_app is None` error
+
+**Solution:**
+1. Make sure you replaced the **entire** `main.py` file
+2. Check Railway logs to confirm initialization ran
+3. Restart the deployment:
+   ```bash
+   railway restart
+   ```
+
+### Issue: Database tables still don't exist
+
+**Solution:**
+1. Check if `init_db()` ran successfully in logs
+2. Verify `DATABASE_URL` is set correctly
+3. Manually create tables using `models.py`:
+   ```bash
+   railway run python3 -c "from models import init_db; init_db()"
+   ```
+
+### Issue: Webhook not configured
+
+**Solution:**
+1. Check logs for webhook setup errors
+2. Manually set webhook:
+   ```bash
+   curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook?url=https://web-production-0fc0e1.up.railway.app/webhook"
+   ```
+3. Verify webhook:
+   ```bash
+   curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
+   ```
+
+### Issue: Payment system still broken
+
+**Solution:**
+1. Verify `telegram_app` is not `None` in logs
+2. Check if bot initialization completed successfully
+3. Test invoice creation manually:
+   ```python
+   # In Railway shell
+   railway run python3
+   >>> from main import telegram_app
+   >>> print(telegram_app)  # Should NOT be None
+   >>> print(telegram_app.bot)  # Should show bot object
+   ```
+
+### Issue: 502 Bad Gateway errors
+
+**Solution:**
+1. Check if Gunicorn started successfully
+2. Verify `PORT` environment variable is set
+3. Check for Python errors in deployment logs
+4. Ensure all dependencies are in `requirements.txt`
+
+---
+
+## ✅ Success Checklist
+
+After deployment, verify:
+
+- [ ] Railway deployment shows "Success" status
+- [ ] Logs show "✅ Bot initialization complete!"
+- [ ] Database tables exist (`\dt` command shows 4 tables)
+- [ ] `users` table has `influence_points` and `diamonds` columns
+- [ ] Bot responds to `/start` command in Telegram
+- [ ] "🎮 Play Now" button appears
+- [ ] Game loads when button is clicked
+- [ ] No errors in Railway logs
+- [ ] Payment system generates invoice links (test in game)
+- [ ] Webhook is configured (check with `/getWebhookInfo`)
+
+---
+
+## 📞 Support
+
+If you still have issues after following this guide:
+
+1. **Check Railway logs** for specific error messages
+2. **Verify environment variables** are set correctly
+3. **Test database connection**:
+   ```bash
+   railway run psql $DATABASE_URL -c "SELECT 1"
+   ```
+4. **Check bot token** is valid:
+   ```bash
+   curl "https://api.telegram.org/bot<YOUR_TOKEN>/getMe"
+   ```
+
+---
+
+## 🎉 Success!
+
+Once deployed successfully, you should see:
+
+✅ Bot responds to commands  
+✅ Game loads in Telegram  
+✅ Database saves user data  
+✅ Payment system works  
+✅ No more errors in logs  
+
+**Your Bookfolloxa bot is now fully operational!** 🚀
+
+---
+
+**Made with ❤️ for Bookfolloxa**  
+**Start building your influencer empire today!** 💰
