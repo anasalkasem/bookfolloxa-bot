@@ -1,0 +1,107 @@
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2025-11-07 06:58:48 +0000] [1] [INFO] Handling signal: term
+[2025-11-07 06:58:48 +0000] [5] [INFO] Worker exiting (pid: 5)
+[2025-11-07 06:58:48 +0000] [4] [INFO] Worker exiting (pid: 4)
+[2025-11-07 06:58:48 +0000] [1] [INFO] Shutting down: Master
+[2025-11-07 06:58:50 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-11-07 06:58:50 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2025-11-07 06:58:50 +0000] [1] [INFO] Using worker: sync
+[2025-11-07 06:58:50 +0000] [4] [INFO] Booting worker with pid: 4
+[2025-11-07 06:58:50 +0000] [5] [INFO] Booting worker with pid: 5
+WHERE users.id = %(id_1)s 
+2025-11-07 07:00:06,426 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:06,426 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:07,330 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.influence_points does not exist
+LINE 1: ... users_balance, users.diamonds AS users_diamonds, users.infl...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 07:00:09,073 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.influence_points does not exist
+LINE 1: ... users_balance, users.diamonds AS users_diamonds, users.infl...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 07:00:21,415 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 07:00:21,952 - main - ERROR - Error getting user data: (psycopg2.errors.UndefinedColumn) column users.influence_points does not exist
+LINE 1: ... users_balance, users.diamonds AS users_diamonds, users.infl...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+2025-11-07 07:00:22,100 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:24,636 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.influence_points does not exist
+LINE 1: ... users_balance, users.diamonds AS users_diamonds, users.infl...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 07:00:27,209 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:27,840 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.influence_points does not exist
+LINE 1: ... users_balance, users.diamonds AS users_diamonds, users.infl...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 07:00:29,446 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:29,447 - main - ERROR - Error in create_invoice_sync: 'NoneType' object has no attribute 'bot'
+Traceback (most recent call last):
+  File "/app/main.py", line 1079, in create_invoice_sync
+    telegram_app.bot.create_invoice_link(
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'bot'
+2025-11-07 07:00:29,449 - main - ERROR - ❌ Failed to create invoice for user 6672291052: pro
+2025-11-07 07:00:30,733 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:30,734 - main - ERROR - Error in create_invoice_sync: 'NoneType' object has no attribute 'bot'
+Traceback (most recent call last):
+  File "/app/main.py", line 1079, in create_invoice_sync
+    telegram_app.bot.create_invoice_link(
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'bot'
+2025-11-07 07:00:30,735 - main - ERROR - ❌ Failed to create invoice for user 6672291052: pro
+2025-11-07 07:00:31,746 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:31,747 - main - ERROR - Error in create_invoice_sync: 'NoneType' object has no attribute 'bot'
+Traceback (most recent call last):
+  File "/app/main.py", line 1079, in create_invoice_sync
+    telegram_app.bot.create_invoice_link(
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'bot'
+2025-11-07 07:00:31,748 - main - ERROR - ❌ Failed to create invoice for user 6672291052: pro
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+2025-11-07 07:00:32,202 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:32,405 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.influence_points does not exist
+LINE 1: ... users_balance, users.diamonds AS users_diamonds, users.infl...
+                                                             ^
+(Background on this error at: https://sqlalche.me/e/20/f405)
+FROM users 
+                                                             ^
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+2025-11-07 07:00:37,206 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 07:00:37,400 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.influence_points does not exist
+LINE 1: ... users_balance, users.diamonds AS users_diamonds, users.infl...
+(Background on this error at: https://sqlalche.me/e/20/f405)
