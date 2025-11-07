@@ -1,7 +1,8 @@
 // ===== GAME STATE =====
 const gameState = {
     bflx: 1000,
-    followers: 0,
+    diamonds: 0,
+    influencePoints: 0,
     totalEarned: 1000, // Total BFLX earned (never decreases)
     energy: 1000,
     maxEnergy: 1000,
@@ -231,7 +232,7 @@ function calculateOfflineEarnings() {
         
         if (offlineEarnings > 0) {
             gameState.bflx += offlineEarnings;
-            gameState.followers += offlineEarnings;
+            gameState.influencePoints += offlineEarnings;
             gameState.totalEarned += offlineEarnings;
             checkLevelUp();
             showNotification(`⛏️ Welcome back! You earned ${formatNumber(offlineEarnings)} BFLX while offline!`, 'success');
@@ -310,7 +311,7 @@ function handleCharacterTap(e) {
     
     // Update game state
     gameState.bflx += earnedBFLX;
-    gameState.followers += earnedBFLX;
+    gameState.influencePoints += earnedBFLX;
     gameState.totalEarned += earnedBFLX;
     gameState.energy -= gameState.tapPower;
     
@@ -777,9 +778,9 @@ function updateMining() {
         // Calculate earnings per second
         const earningsPerSecond = gameState.miningPerHour / 3600;
         
-        // Add to balance and followers
+        // Add to balance and influence points
         gameState.bflx += earningsPerSecond;
-        gameState.followers += earningsPerSecond;
+        gameState.influencePoints += earningsPerSecond;
         gameState.totalEarned += earningsPerSecond;
         
         // Check for level up
@@ -794,7 +795,8 @@ function updateMining() {
 function updateUI() {
     // Header stats
     document.getElementById('bflxBalance').textContent = formatNumber(gameState.bflx);
-    document.getElementById('followersCount').textContent = formatNumber(gameState.followers);
+    document.getElementById('diamondsBalance').textContent = formatNumber(gameState.diamonds);
+    document.getElementById('influencePoints').textContent = formatNumber(gameState.influencePoints);
     document.getElementById('levelBadge').textContent = gameState.level;
     
     // Balance counter above character
@@ -1420,7 +1422,7 @@ function claimDailyReward() {
     
     // Add reward
     gameState.bflx += reward;
-    gameState.followers += reward;
+    gameState.influencePoints += reward;
     gameState.totalEarned += reward;
     checkLevelUp();
     
@@ -1446,7 +1448,7 @@ function renderStatistics() {
     document.getElementById('statsTotalEarned').textContent = formatNumber(gameState.totalEarned);
     document.getElementById('statsLevel').textContent = gameState.level;
     document.getElementById('statsLevelTitle').textContent = getLevelTitle(gameState.level);
-    document.getElementById('statsFollowers').textContent = formatNumber(gameState.followers);
+    document.getElementById('statsFollowers').textContent = formatNumber(gameState.influencePoints);
     document.getElementById('statsTapPower').textContent = gameState.tapPower;
     document.getElementById('statsMaxEnergy').textContent = gameState.maxEnergy;
     document.getElementById('statsMining').textContent = formatNumber(gameState.miningPerHour);

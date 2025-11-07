@@ -13,6 +13,8 @@ class User(Base):
     username = Column(String(255), nullable=True)
     first_name = Column(String(255), nullable=True)
     balance = Column(BigInteger, default=0)
+    diamonds = Column(Integer, default=0)
+    influence_points = Column(BigInteger, default=0)
     
     energy = Column(Integer, default=config.INITIAL_ENERGY)
     max_energy = Column(Integer, default=config.INITIAL_ENERGY)
