@@ -14,45 +14,36 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 ### System Architecture
 
 **UI/UX Decisions:**
-- Professional interface inspired by "Bums" bot.
-- Extensive use of ASCII art and decorative boxes for messages.
-- Clear and organized information display with decorative separators.
-- Glassmorphism design with purple and cyan gradients for WebApp.
-- Haptic feedback for all interactions.
-- Responsive design with smooth transitions.
-- Particle effects, level-up animations, floating numbers, tap pulse effects, and critical hits animations for enhanced visual feedback.
+- Professional interface inspired by "Bums" bot, utilizing ASCII art, decorative boxes, and clear information display with separators.
+- Glassmorphism design with purple and cyan gradients for the WebApp, featuring haptic feedback, responsive design, smooth transitions, particle effects, level-up animations, floating numbers, tap pulse effects, and critical hits animations.
 
 **Technical Implementations:**
-- **Gamified Mining:** Interactive tapping system with instant rewards, 2x critical click opportunities, and automatic mining (up to 12 hours).
-- **Energy System:** Limited energy that regenerates automatically every 3 seconds.
-- **Daily Fortune Wheel:** Daily random prizes.
-- **Mystery Boxes:** Four rarity levels (Bronze, Silver, Gold, Diamond).
-- **Challenge Games:** Speed tap rush (30 seconds), daily challenges with Streak system.
-- **Upgrade System:** Enhancements for click power, energy capacity, automatic mining rate, and energy regeneration speed.
-- **Social Features:** 3-level referral system (10%, 5%, 2%) and 1000 BFLX bonus per new friend.
+- **Gamified Mining:** Interactive tapping, 2x critical clicks, and automatic mining.
+- **Core Game Mechanics:** Energy system, Daily Fortune Wheel, Mystery Boxes (four rarity levels), Challenge Games (Speed tap rush, daily challenges with Streak system).
+- **Upgrade System:** Enhancements for click power, energy capacity, automatic mining rate, and energy regeneration.
+- **Social Features:** 3-level referral system and bonus for new friends.
 - **Personal Statistics:** Comprehensive player progress display.
-- **Influencer Empire WebApp:** Tap-to-Earn game with social media theme, influencer hiring (5 levels), smart energy system, passive income, daily/social tasks, achievements, critical hits (x10 chance), visual effects, and auto-save.
-- **Security:** Full Telegram WebApp SDK authentication with HMAC validation, anti-cheat system (max balance, level, energy limits), authorization checks, input validation, and rate limiting readiness.
-- **Real-time Features:** Live leaderboard, cross-device sync, and persistent progress saved on the server.
-- **Monetization:** 
-  - **Telegram Stars Payments:** Integrated real payment system using Telegram Stars (XTR currency)
-  - **BFLX Packages:** 4 packages (Starter: 50⭐/2.5K BFLX, Pro: 200⭐/10K BFLX, King: 800⭐/50K BFLX, Legend: 2000⭐/150K BFLX)
-  - Social media services (Instagram followers, TikTok likes)
-  - Rewarded ads (+500 BFLX every 5 mins)
-  - 7-day daily rewards (1K → 20K BFLX)
+- **Influencer Empire WebApp:** Tap-to-Earn game with social media theme, influencer hiring (5 levels), smart energy, passive income, daily/social tasks, achievements, and auto-save.
+- **Security:** Telegram WebApp SDK authentication with HMAC validation, anti-cheat system, authorization checks, input validation, and rate limiting readiness.
+- **Real-time Features:** Live leaderboard, cross-device sync, and persistent server-side progress.
+- **Monetization:** Integrated Telegram Stars payments, BFLX packages, social media services, rewarded ads, and 7-day daily rewards.
 - **Campaigns:** Social Media Boost, Influencer Collab, Viral Challenge, Brand Partnership.
 - **Wallet Management:** For BFLX, SOL, USDT.
 - **Settings:** Language, Sound, Notifications, Theme.
+- **3-Currency Economy:** BFLX (soft), Diamonds (premium, purchasable with Telegram Stars), and Influence Points (experience/progression). Includes Diamond to BFLX exchange.
+- **Offline Earnings:** Notification system for earnings while away.
+- **Statistics & Balance Tracking:** Comprehensive tracking of current balance vs. total lifetime earned BFLX.
+- **Advanced Level System (50 Levels):** Balanced exponential progression with level-based bonuses, rewards, and titles.
+- **Dynamic Character Scaling:** Character visual size increases with player level.
+- **TON Connect Integration:** Real wallet connection for Tonkeeper, MyTonWallet, Telegram Wallet, and Trust Wallet.
+- **Enhanced Interactive Effects & UX:** Web Audio API sounds, critical hits with animations/particles, enhanced haptic feedback, visual effects (particle explosions, floating numbers, character shake), and gender selection.
 
 **Feature Specifications:**
 - **Initial Energy:** 1000, Regeneration: 1 energy/3 seconds.
-- **Initial Click Power:** 5 BFLX (scales with level: 5 + level * 0.5).
+- **Initial Click Power:** 5 BFLX (scales with level).
 - **Initial Auto-Mining:** 10 BFLX/hour.
-- **Max Energy:** 1000 (scales with level: 1000 + level * 50).
-- **Level System:** 50 levels total with balanced exponential progression
-  - Early game (1-10): Linear growth, easy progression
-  - Mid game (11-25): Moderate exponential, strategic gameplay
-  - Late game (26-50): Steep exponential, challenging endgame
+- **Max Energy:** 1000 (scales with level).
+- **Level System:** 50 levels with balanced exponential progression (early, mid, late game phases).
 - **Character Scaling:** Grows from 1.0x to 1.8x size across 50 levels.
 
 **System Design Choices:**
@@ -60,132 +51,13 @@ Bookfolloxa is an interactive Telegram mining and gaming bot built on the Solana
 - **Bot Framework:** `python-telegram-bot` 21.0.1.
 - **ORM:** SQLAlchemy 2.0.25.
 - **Scheduler:** APScheduler 3.10.4.
-- **Deployment:** Reserved VM on Replit using **Webhook mode** (November 2025).
-- **Code Organization:** Modular structure with `main.py` (bot and Flask server), `models.py` (DB models), `game_logic.py`, `config.py`, `requirements.txt`, `webapp/` for WebApp, and `.env` for environment variables.
-- **Data Handling:** Defensive defaults in `localStorage`, Nullish coalescing (`??`), and object spread pattern for safe data merging.
-
-**Recent Changes (November 06, 2025 - Latest Update):**
-- **✅ Full WebApp English Translation:** All payment buttons and UI text now in English
-  - Payment package badges: "🎁 Starter", "💼 Pro", "👑 King", "💎 Legend" (previously Arabic)
-  - Package names in code: "Starter Package", "Pro Package", "King Package", "Legend Package"
-  - Backend payment messages: "Payment Successful! You received: X BFLX"
-  - Error messages: "Invalid package type", "Payment amount is incorrect", etc.
-  - All Telegram Stars payment flow now 100% English
-  - Translations file updated for consistency
-- **✅ Updated Header Icons with New Logo:** Replaced BFLX and Followers icons with new Bookfolloxa logo
-  - Both stat cards now display the professional gradient B logo
-  - Consistent branding across the header
-  - Logo has purple drop-shadow effect matching the game theme
-
-**Recent Changes (November 06, 2025 - Previous Update):**
-- **✅ Statistics & Balance Tracking System:** Comprehensive tracking and display
-  - Added totalEarned field to track lifetime BFLX earnings (never decreases)
-  - All BFLX-earning actions now update totalEarned: taps, mining, tasks, level-ups, payments, ads, rewards
-  - New Statistics Page (accessible from More menu) showing:
-    * Current Balance vs Total Earned comparison
-    * Level, Followers, Tap Power, Max Energy
-    * Auto-Mining rate and Influencers count
-    * Professional glassmorphism design with gradient highlights
-  - Added mini-stats cards on home page displaying Balance and Total Earned for quick reference
-  - Clear differentiation between current balance (can decrease) and lifetime earnings (always increases)
-
-**Recent Changes (November 06, 2025 - Previous Update):**
-- **✅ Enhanced Influencers Page:** Improved clarity and user experience
-  - Added "Requires Level X" badges for locked influencers
-  - Color-coded buttons: Red for level-locked, Gray for insufficient funds, Purple/Cyan when available
-  - Displays cost information directly in card
-  - Buttons show "🔒 Level X" when locked by level requirement
-  - New vertical card layout for better information display
-  - Clear visual feedback for why influencer cannot be hired
-
-**Recent Changes (November 06, 2025 - Earlier):**
-- **✅ Enhanced Header UI:** Improved header design for better clarity
-  - Stat cards (BFLX/Followers) now have circular gradient backgrounds with purple/cyan theme
-  - Removed white backgrounds, replaced with glassmorphism design
-  - Added drop-shadow effects to icons for depth
-  - Hover animations on stat cards
-  - Level display now shows "Level X/50" for clear progression tracking
-  - User can see current level and max level (50) at a glance
-
-**Recent Changes (November 06, 2025 - Previous):**
-- **✅ Advanced Level System (50 Levels):** Implemented balanced progression system
-  - Balanced exponential growth formula for realistic progression
-  - Level requirements: Level 10 (~100K BFLX), Level 25 (~1.5M BFLX), Level 40 (~34M BFLX), Level 50 (~79M BFLX)
-  - Level-based bonuses: Tap Power increases with level, Max Energy scales with progression
-  - Level-up rewards: Players receive BFLX bonus on each level up
-  - 9 distinct level titles from "🐣 Beginner" to "🏆 Legendary Emperor"
-  - checkLevelUp() called on all BFLX changes (tap, mining, tasks, purchases, ads, rewards)
-- **✅ Dynamic Character Scaling:** Character grows with player level
-  - Scale formula: 1.0 at Level 1 → 1.8 at Level 50 (80% size increase)
-  - Smooth CSS transform animations for size changes
-  - Visual progression feedback for player advancement
-- **✅ Balance Counter Above Character:** Live BFLX display with animations
-  - Floating counter positioned above character with glassmorphism design
-  - Pulse animation with cyan/purple gradient
-  - Spinning coin icon animation
-  - Real-time updates synchronized with game state
-- **✅ Bug Fixes:** Resolved critical JavaScript errors
-  - Fixed renderTasks() undefined category error with default parameter
-  - Added missing renderMorePage() function
-  - Event listeners now properly attached after DOM rendering
-
-**Recent Changes (November 06, 2025 - Earlier):**
-- **✅ TON Connect Integration - REAL WALLET CONNECTION:** Implemented authentic wallet integration
-  - Installed @tonconnect/ui library for TON blockchain wallet connections
-  - Created tonconnect-manifest.json for app identity and configuration
-  - Replaced demo wallet connection with real TON Connect protocol
-  - Users can now connect real wallets: Tonkeeper, MyTonWallet, Telegram Wallet, Trust Wallet
-  - Added wallet disconnect functionality with visual feedback
-  - Auto-reconnection on page reload if wallet was previously connected
-  - Secure end-to-end encrypted communication with wallets
-  - Real wallet addresses displayed in shortened format (e.g., UQab...xyz4)
-  - Game state now persists actual wallet address for future transaction features
-- **✅ Background Music Removed:** Completely removed oriental/oud background music per user request
-  - Removed music toggle button from UI
-  - Disabled music initialization and playback
-  - Kept sound effects (tap, success, error) intact
-  - Cleaner, distraction-free gaming experience
-- **✅ Bot Language Update:** Changed all bot text to English
-  - Updated "🎮 العب الآن" to "🎮 Play Now"
-  - All messages and buttons now in English
-  - Better international reach and consistency
-- **✅ Node.js Environment Setup:** Installed nodejs-20 for TON Connect dependencies
-  - Created package.json in webapp directory
-  - Installed 16 npm packages including @tonconnect/ui and dependencies
-
-**Recent Changes (Earlier November 2025):**
-- **✅ Payment System Reliability Fix (Latest):** Improved payment flow for better stability
-  - **Enhanced Error Handling:** Better error messages and logging in payment endpoints
-  - **Sync Mechanism:** Payment confirmation now syncs with backend before showing success
-  - **Race Condition Fix:** Eliminated duplicate crediting by properly coordinating frontend callback with backend webhook
-  - **Database Connection:** Added pool_pre_ping and pool_recycle to prevent SSL connection errors
-  - **User Feedback:** Added "Processing payment..." notification with 2-second backend sync delay
-- **✅ Enhanced Interactive Effects & UX:** Improved user experience with rich feedback systems
-  - **Sound System:** Implemented Web Audio API for programmatic sounds (tap, critical, purchase, success, error) - no audio files needed
-  - **Critical Hits:** Added 10% chance for ×10 BFLX multiplier with special animations, particles (🔥💥⚡✨💫🌟💯🎯), and sound effects
-  - **Enhanced Haptic Feedback:** Telegram WebApp haptic support with fallback to navigator.vibrate API
-  - **Visual Effects:** Improved particle explosions, floating numbers (+5 BFLX), character shake animations on tap
-  - **Gender Selection:** Added male/female character toggle in settings with proper state persistence via updateGenderButtons()
-  - **CSS Animations:** New critical-hit, critical-number, and critical-particle keyframe animations for engaging feedback
-  - **Code Quality:** Refactored changeCharacter() to reuse updateGenderButtons() helper, eliminating duplicate logic
-- **✅ Telegram Stars Integration - FULLY WORKING:** Implemented real payment system using Telegram Stars API
-  - Added Payment model to track all transactions in database
-  - Created pre_checkout_query and successful_payment handlers  
-  - Built /api/create_invoice endpoint for generating payment links
-  - Updated WebApp to use real Telegram payment flow (openInvoice)
-  - Replaced fake/simulated purchases with authentic Telegram Stars payments
-  - **Fixed HMAC validation:** Corrected key/message order in webapp/telegram_auth.py (HMAC("WebAppData", bot_token))
-  - **Fixed asyncio event loop:** Resolved "Event loop is closed" error by reusing/creating event loop properly
-  - **Security hardened:** All payment endpoints now validate Telegram WebApp HMAC signatures
-  - **Duplicate prevention:** Charge ID tracking prevents double-crediting on retries
-  - **Amount verification:** Backend validates payment amounts match canonical package prices
-- Converted bot from Polling mode to Webhook mode for better stability on Replit
-- Resolved "Conflict: terminated by other getUpdates request" issue
-- Enhanced authentication logging for better debugging
-- Cleaned up unused code and imports
+- **Deployment:** Reserved VM on Replit using **Webhook mode**.
+- **Code Organization:** Modular structure with `main.py`, `models.py`, `game_logic.py`, `config.py`, `requirements.txt`, `webapp/`, and `.env`.
+- **Data Handling:** Defensive defaults, Nullish coalescing, and object spread for safe data merging.
 
 ### External Dependencies
 - **Telegram Bot API:** For bot interaction and WebApp integration.
 - **PostgreSQL:** Database hosted via Replit.
 - **Solana blockchain:** Underlying platform for the bot.
 - **Flask:** Web server for serving the Influencer Empire WebApp.
+- **@tonconnect/ui library:** For TON blockchain wallet connections.
