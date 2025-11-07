@@ -45,7 +45,7 @@ def get_or_create_user(telegram_user, db: Session, referrer_id=None) -> User:
 
 def get_main_menu_keyboard():
     # Use production URL for deployed app
-    webapp_url = 'https://raaik-hal-tastaie-anass111173.replit.app/webapp/'
+    webapp_url = 'https://web-production-0fc0e1.up.railway.app/webapp/'
     
     logger.info(f"Using webapp URL: {webapp_url}")
     
