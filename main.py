@@ -1418,7 +1418,87 @@ def wallet_transactions():
         logger.error(f"Error in wallet_transactions: {e}")
         return jsonify({'error': 'Server error'}), 500
 
-telegram_app = None
+# ============================================================================
+# CRITICAL FIX: Initialize bot at module level (runs when Gunicorn imports)
+# ============================================================================
+logger.info("🚀 Initializing Bookfolloxa bot...")
+
+# Initialize database first
+try:
+    init_db()
+    logger.info("✅ Database initialized successfully")
+except Exception as e:
+    logger.error(f"❌ Database initialization failed: {e}")
+    raise
+
+# Initialize Telegram bot
+try:
+    telegram_app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
+    logger.info("✅ Telegram bot application created")
+except Exception as e:
+    logger.error(f"❌ Failed to create Telegram bot: {e}")
+    raise
+
+# Add handlers to the application
+telegram_app.add_handler(CommandHandler("start", start))
+telegram_app.add_handler(CallbackQueryHandler(button_callback))
+telegram_app.add_handler(PreCheckoutQueryHandler(pre_checkout_query_handler))
+telegram_app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_handler))
+logger.info("✅ Bot handlers registered")
+
+# Setup webhook asynchronously
+async def setup_webhook_async(application: Application) -> None:
+    """Setup webhook with Telegram"""
+    import asyncio
+    from telegram import MenuButtonWebApp, WebAppInfo
+    try:
+        await application.initialize()
+        
+        webhook_url = 'https://web-production-0fc0e1.up.railway.app/webhook'
+        logger.info(f"Setting up webhook: {webhook_url}")
+        
+        await application.bot.delete_webhook(drop_pending_updates=True)
+        await asyncio.sleep(2)
+        
+        await application.bot.set_webhook(
+            url=webhook_url,
+            allowed_updates=Update.ALL_TYPES,
+            drop_pending_updates=True
+        )
+        
+        webapp_url = 'https://web-production-0fc0e1.up.railway.app/webapp/'
+        menu_button = MenuButtonWebApp(
+            text="🎮 Play Now",
+            web_app=WebAppInfo(url=webapp_url)
+        )
+        await application.bot.set_chat_menu_button(menu_button=menu_button)
+        logger.info("✅ Bot menu button set to open game")
+        
+        await application.bot.set_my_commands([])
+        logger.info("✅ Bot commands cleared")
+        
+        webhook_info = await application.bot.get_webhook_info()
+        logger.info(f"✅ Webhook configured: {webhook_info.url}")
+        
+    except Exception as e:
+        logger.error(f"❌ Error setting up webhook: {e}")
+
+# Run webhook setup in a new event loop
+try:
+    import asyncio
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(setup_webhook_async(telegram_app))
+    loop.close()
+    logger.info("✅ Webhook setup completed")
+except Exception as e:
+    logger.error(f"⚠️ Webhook setup failed (will retry on first request): {e}")
+
+logger.info("✅ Bot initialization complete!")
+
+# ============================================================================
+# Flask Routes
+# ============================================================================
 
 def get_webhook_url():
     """Get the webhook URL for this deployment"""
@@ -1460,78 +1540,7 @@ def webhook():
         logger.error(f"Error processing webhook: {e}", exc_info=True)
         return 'Error', 500
 
-
-async def setup_webhook(application: Application) -> None:
-    """Setup webhook with Telegram"""
-    import asyncio
-    from telegram import MenuButtonWebApp, WebAppInfo
-    try:
-        # Initialize application first
-        await application.initialize()
-        
-        webhook_url = get_webhook_url()
-        logger.info(f"Setting up webhook: {webhook_url}")
-        
-        # Delete any existing webhook first
-        await application.bot.delete_webhook(drop_pending_updates=True)
-        await asyncio.sleep(2)
-        
-        # Set new webhook
-        await application.bot.set_webhook(
-            url=webhook_url,
-            allowed_updates=Update.ALL_TYPES,
-            drop_pending_updates=True
-        )
-        
-        # Set Menu Button to open game directly
-        webapp_url = 'https://web-production-0fc0e1.up.railway.app/webapp/'
-        menu_button = MenuButtonWebApp(
-            text="🎮 Play Now",
-            web_app=WebAppInfo(url=webapp_url)
-        )
-        await application.bot.set_chat_menu_button(menu_button=menu_button)
-        logger.info("✅ Bot menu button set to open game")
-        
-        # Remove all commands from menu
-        await application.bot.set_my_commands([])
-        logger.info("✅ Bot commands cleared")
-        
-        webhook_info = await application.bot.get_webhook_info()
-        logger.info(f"✅ Webhook configured: {webhook_info.url}")
-        
-    except Exception as e:
-        logger.error(f"❌ Error setting up webhook: {e}")
-        raise
-
-def run_flask():
-    """Run Flask server in background"""
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
-
-def main():
-    global telegram_app
-    import asyncio
-    
-    logger.info("Initializing database...")
-    init_db()
-    
-    logger.info("Initializing bot...")
-    telegram_app = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
-    
-    telegram_app.add_handler(CommandHandler("start", start))
-    telegram_app.add_handler(CallbackQueryHandler(button_callback))
-    telegram_app.add_handler(PreCheckoutQueryHandler(pre_checkout_query_handler))
-    telegram_app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_handler))
-    
-    logger.info("Setting up webhook...")
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(setup_webhook(telegram_app))
-    loop.close()
-    
-    logger.info("Starting Flask server with webhook mode...")
-    logger.info("Bot is ready to receive messages via webhook!")
-    
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
-
-if __name__ == '__main__':
-    main()
+# ============================================================================
+# Note: Bot initialization happens at module level (lines 1424-1500)
+# No main() function needed - Gunicorn imports this module and uses 'app'
+# ============================================================================
