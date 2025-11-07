@@ -1423,7 +1423,7 @@ telegram_app = None
 def get_webhook_url():
     """Get the webhook URL for this deployment"""
     # Use production URL for deployed app
-    return 'https://raaik-hal-tastaie-anass111173.replit.app/webhook'
+    return 'https://web-production-0fc0e1.up.railway.app/webhook'
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -1484,7 +1484,7 @@ async def setup_webhook(application: Application) -> None:
         )
         
         # Set Menu Button to open game directly
-        webapp_url = 'https://raaik-hal-tastaie-anass111173.replit.app/webapp/'
+        webapp_url = 'https://web-production-0fc0e1.up.railway.app/webapp/'
         menu_button = MenuButtonWebApp(
             text="🎮 Play Now",
             web_app=WebAppInfo(url=webapp_url)
