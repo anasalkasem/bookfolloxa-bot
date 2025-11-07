@@ -1,0 +1,105 @@
+
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 06:54:14,035 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+2025-11-07 06:54:18,804 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 06:54:18,996 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+2025-11-07 06:54:23,808 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 06:54:24,011 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+2025-11-07 06:54:28,806 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 06:54:28,998 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 06:54:33,808 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+2025-11-07 06:54:34,034 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 06:54:38,811 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 06:54:39,013 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 06:54:43,700 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 06:54:43,816 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 06:54:44,201 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-11-07 06:54:44,872 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+[2025-11-07 06:54:46 +0000] [1] [INFO] Handling signal: term
+[2025-11-07 06:54:46 +0000] [4] [INFO] Worker exiting (pid: 4)
+[2025-11-07 06:54:46 +0000] [5] [INFO] Worker exiting (pid: 5)
+[2025-11-07 06:54:47 +0000] [1] [INFO] Shutting down: Master
+[2025-11-07 06:54:48 +0000] [1] [INFO] Starting gunicorn 21.2.0
+[2025-11-07 06:54:48 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2025-11-07 06:54:48 +0000] [1] [INFO] Using worker: sync
+[2025-11-07 06:54:48 +0000] [4] [INFO] Booting worker with pid: 4
+[2025-11-07 06:54:48 +0000] [5] [INFO] Booting worker with pid: 5
+2025-11-07 06:54:50,908 - webapp.telegram_auth - INFO - ✅ Validated user: 6672291052
+2025-11-07 06:54:51,156 - main - ERROR - Error syncing user data: (psycopg2.errors.UndefinedColumn) column users.diamonds does not exist
+LINE 1: ...users_first_name, users.balance AS users_balance, users.diam...
+                                                             ^
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.first_name AS users_first_name, users.balance AS users_balance, users.diamonds AS users_diamonds, users.influence_points AS users_influence_points, users.energy AS users_energy, users.max_energy AS users_max_energy, users.last_energy_update AS users_last_energy_update, users.tap_power AS users_tap_power, users.tap_power_level AS users_tap_power_level, users.auto_mining_rate AS users_auto_mining_rate, users.auto_mining_level AS users_auto_mining_level, users.last_auto_claim AS users_last_auto_claim, users.energy_capacity_level AS users_energy_capacity_level, users.energy_regen_level AS users_energy_regen_level, users.level AS users_level, users.xp AS users_xp, users.total_taps AS users_total_taps, users.total_earned AS users_total_earned, users.referrer_id AS users_referrer_id, users.referral_count AS users_referral_count, users.referral_earnings AS users_referral_earnings, users.daily_streak AS users_daily_streak, users.last_daily_claim AS users_last_daily_claim, users.last_spin AS users_last_spin, users.created_at AS users_created_at, users.last_active AS users_last_active 
+FROM users 
+WHERE users.id = %(id_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'id_1': 6672291052, 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
