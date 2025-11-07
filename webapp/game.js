@@ -235,7 +235,10 @@ function calculateOfflineEarnings() {
             gameState.influencePoints += offlineEarnings;
             gameState.totalEarned += offlineEarnings;
             checkLevelUp();
-            showNotification(`⛏️ Welcome back! You earned ${formatNumber(offlineEarnings)} BFLX while offline!`, 'success');
+            
+            // Enhanced offline earnings notification
+            const hoursText = actualHours < 1 ? `${Math.floor(actualHours * 60)} minutes` : `${actualHours.toFixed(1)} hours`;
+            showOfflineEarningsModal(offlineEarnings, hoursText);
         }
     }
     
@@ -833,6 +836,12 @@ function formatNumber(num) {
     return Math.floor(num).toString();
 }
 
+function showOfflineEarningsModal(earnings, timeText) {
+    showNotification(`⛏️ Welcome back! Your Influencers earned ${formatNumber(earnings)} BFLX while you were away (${timeText})!`, 'success');
+    playSound('success');
+    triggerHaptic('medium');
+}
+
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -960,6 +969,125 @@ function updateGenderButtons() {
 }
 
 // ===== STORE & MONETIZATION =====
+async function buyDiamonds(packageType) {
+    const packages = {
+        starter: { stars: 50, diamonds: 50, name: 'Starter Diamond Pack' },
+        pro: { stars: 200, diamonds: 200, name: 'Pro Diamond Pack' },
+        king: { stars: 800, diamonds: 800, name: 'King Diamond Pack' },
+        legend: { stars: 2000, diamonds: 2000, name: 'Legend Diamond Pack' }
+    };
+    
+    const pkg = packages[packageType];
+    if (!pkg) {
+        showNotification('❌ Invalid package!', 'error');
+        return;
+    }
+    
+    showNotification(`💳 Opening payment for ${pkg.diamonds} 💎 Diamonds (${pkg.stars} ⭐ Stars)...`, 'info');
+    
+    try {
+        const tg = window.Telegram?.WebApp;
+        if (!tg) {
+            showNotification('❌ Telegram WebApp not available', 'error');
+            return;
+        }
+        
+        const user = tg.initDataUnsafe?.user;
+        if (!user) {
+            showNotification('❌ User not found', 'error');
+            return;
+        }
+        
+        const initData = tg.initData;
+        
+        const response = await fetch('/api/create_invoice', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': initData
+            },
+            body: JSON.stringify({
+                telegram_id: user.id,
+                package: packageType,
+                _auth: initData
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.invoice_link) {
+            tg.openInvoice(data.invoice_link, async (status) => {
+                if (status === 'paid') {
+                    showNotification(`⏳ Processing payment... Please wait`, 'info');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    if (typeof syncWithBackend === 'function') {
+                        const synced = await syncWithBackend();
+                        if (synced) {
+                            showNotification(`✅ Payment successful! +${pkg.diamonds} 💎 Diamonds`, 'success');
+                            playSound('purchase');
+                            triggerHaptic('medium');
+                        } else {
+                            showNotification('⏳ Payment is being processed.', 'info');
+                        }
+                    } else {
+                        gameState.diamonds += pkg.diamonds;
+                        showNotification(`✅ Payment successful! +${pkg.diamonds} 💎 Diamonds`, 'success');
+                        updateUI();
+                        saveGameState();
+                        playSound('purchase');
+                        triggerHaptic('medium');
+                    }
+                } else if (status === 'cancelled') {
+                    showNotification('❌ Payment cancelled', 'error');
+                } else if (status === 'failed') {
+                    showNotification('❌ Payment failed. Please try again.', 'error');
+                }
+            });
+        } else {
+            const errorMsg = data.error || 'Failed to create invoice';
+            showNotification(`❌ ${errorMsg}`, 'error');
+            console.error('Invoice creation failed:', data);
+        }
+    } catch (error) {
+        console.error('Payment error:', error);
+        showNotification('❌ Payment error occurred', 'error');
+    }
+}
+
+function exchangeDiamondsForBFLX(diamondCost) {
+    const exchangeRates = {
+        10: 2500,
+        40: 10000,
+        160: 50000,
+        400: 150000
+    };
+    
+    const bflxAmount = exchangeRates[diamondCost];
+    
+    if (!bflxAmount) {
+        showNotification('❌ Invalid exchange amount!', 'error');
+        return;
+    }
+    
+    if (gameState.diamonds < diamondCost) {
+        showNotification('❌ Not enough Diamonds!', 'error');
+        playSound('error');
+        return;
+    }
+    
+    gameState.diamonds -= diamondCost;
+    gameState.bflx += bflxAmount;
+    gameState.totalEarned += bflxAmount;
+    checkLevelUp();
+    
+    showNotification(`✅ Exchanged ${diamondCost} 💎 for ${formatNumber(bflxAmount)} BFLX!`, 'success');
+    playSound('purchase');
+    triggerHaptic('medium');
+    updateUI();
+    saveGameState();
+}
+
 async function buyBFLX(packageType) {
     const packages = {
         starter: { stars: 50, bflx: 2500, name: 'Starter Package' },

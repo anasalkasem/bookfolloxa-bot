@@ -168,31 +168,62 @@
             <h2 class="page-title">💎 Store & Wallet</h2>
             
             <div class="store-section">
-                <h3>🛒 Buy BFLX with Telegram Stars ⭐</h3>
+                <h3>💎 Buy Diamonds with Telegram Stars ⭐</h3>
+                <p style="margin: 5px 0 15px; color: #aaa; font-size: 13px;">💎 Diamonds are premium currency - use them to buy BFLX packs or speed up auto-mining!</p>
                 <div class="store-grid">
-                    <div class="store-item" onclick="buyBFLX('starter')">
-                        <div class="store-badge">🎁 Starter</div>
-                        <div class="store-amount">2,500 BFLX</div>
+                    <div class="store-item" onclick="buyDiamonds('starter')">
+                        <div class="store-badge">🎁 Starter Pack</div>
+                        <div class="store-amount">50 💎 Diamonds</div>
                         <div class="store-price">50 ⭐ Stars</div>
                         <button class="store-btn">Buy Now</button>
                     </div>
-                    <div class="store-item popular" onclick="buyBFLX('pro')">
-                        <div class="store-badge">💼 Pro ⭐</div>
-                        <div class="store-amount">10,000 BFLX</div>
+                    <div class="store-item popular" onclick="buyDiamonds('pro')">
+                        <div class="store-badge">💼 Pro Pack ⭐</div>
+                        <div class="store-amount">200 💎 Diamonds</div>
                         <div class="store-price">200 ⭐ Stars</div>
                         <button class="store-btn">Buy Now</button>
                     </div>
-                    <div class="store-item" onclick="buyBFLX('king')">
-                        <div class="store-badge">👑 King</div>
-                        <div class="store-amount">50,000 BFLX</div>
+                    <div class="store-item" onclick="buyDiamonds('king')">
+                        <div class="store-badge">👑 King Pack</div>
+                        <div class="store-amount">800 💎 Diamonds</div>
                         <div class="store-price">800 ⭐ Stars</div>
                         <button class="store-btn">Buy Now</button>
                     </div>
-                    <div class="store-item premium" onclick="buyBFLX('legend')">
-                        <div class="store-badge">💎 Legend 💎</div>
-                        <div class="store-amount">150,000 BFLX</div>
+                    <div class="store-item premium" onclick="buyDiamonds('legend')">
+                        <div class="store-badge">💎 Legend Pack 💎</div>
+                        <div class="store-amount">2000 💎 Diamonds</div>
                         <div class="store-price">2000 ⭐ Stars</div>
                         <button class="store-btn">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="store-section">
+                <h3>🪙 Exchange Diamonds for BFLX</h3>
+                <div class="store-grid">
+                    <div class="store-item" onclick="exchangeDiamondsForBFLX(10)">
+                        <div class="store-badge">🪙 Small Pack</div>
+                        <div class="store-amount">2,500 BFLX</div>
+                        <div class="store-price">10 💎 Diamonds</div>
+                        <button class="store-btn">Exchange</button>
+                    </div>
+                    <div class="store-item popular" onclick="exchangeDiamondsForBFLX(40)">
+                        <div class="store-badge">🪙 Medium Pack</div>
+                        <div class="store-amount">10,000 BFLX</div>
+                        <div class="store-price">40 💎 Diamonds</div>
+                        <button class="store-btn">Exchange</button>
+                    </div>
+                    <div class="store-item" onclick="exchangeDiamondsForBFLX(160)">
+                        <div class="store-badge">🪙 Large Pack</div>
+                        <div class="store-amount">50,000 BFLX</div>
+                        <div class="store-price">160 💎 Diamonds</div>
+                        <button class="store-btn">Exchange</button>
+                    </div>
+                    <div class="store-item premium" onclick="exchangeDiamondsForBFLX(400)">
+                        <div class="store-badge">🪙 Mega Pack</div>
+                        <div class="store-amount">150,000 BFLX</div>
+                        <div class="store-price">400 💎 Diamonds</div>
+                        <button class="store-btn">Exchange</button>
                     </div>
                 </div>
             </div>
@@ -335,9 +366,9 @@
                     </div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-icon">👥</div>
+                    <div class="stat-icon">✨</div>
                     <div class="stat-content">
-                        <div class="stat-label">Followers</div>
+                        <div class="stat-label">Influence Points</div>
                         <div class="stat-value" id="statsFollowers">0</div>
                     </div>
                 </div>
