@@ -776,6 +776,13 @@ BFLX_PACKAGES = {
     'legend': {'stars': 2000, 'bflx': 150000, 'name': 'Legend Package'}
 }
 
+DIAMOND_PACKAGES = {
+    'starter': {'stars': 50, 'diamonds': 50, 'name': 'Starter Diamond Pack'},
+    'pro': {'stars': 200, 'diamonds': 200, 'name': 'Pro Diamond Pack'},
+    'king': {'stars': 800, 'diamonds': 800, 'name': 'King Diamond Pack'},
+    'legend': {'stars': 2000, 'diamonds': 2000, 'name': 'Legend Diamond Pack'}
+}
+
 async def pre_checkout_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle pre-checkout query for Telegram Stars payments"""
     query = update.pre_checkout_query
@@ -807,43 +814,85 @@ async def successful_payment_handler(update: Update, context: ContextTypes.DEFAU
             return
         
         payload_parts = payment.invoice_payload.split('_')
-        package_type = payload_parts[0]
         
-        if package_type not in BFLX_PACKAGES:
-            logger.error(f"Invalid package type in payload: {package_type}")
-            await message.reply_text("❌ Invalid package type. Please contact support.")
-            db.close()
-            return
+        payment_type = 'bflx'
+        if payload_parts[0] in ['diamonds', 'bflx']:
+            payment_type = payload_parts[0]
+            package_type = payload_parts[1]
+        else:
+            package_type = payload_parts[0]
         
-        pkg = BFLX_PACKAGES[package_type]
-        
-        if payment.total_amount != pkg['stars']:
-            logger.error(f"Payment amount mismatch: expected {pkg['stars']}, got {payment.total_amount}")
-            await message.reply_text("❌ Payment amount is incorrect. Please contact support.")
-            db.close()
-            return
-        
-        payment_record = Payment(
-            user_id=user.id,
-            charge_id=payment.telegram_payment_charge_id,
-            invoice_payload=payment.invoice_payload,
-            amount_stars=payment.total_amount,
-            amount_bflx=pkg['bflx'],
-            status='paid',
-            paid_at=datetime.utcnow()
-        )
-        db.add(payment_record)
-        
-        user.balance += pkg['bflx']
-        user.total_earned += pkg['bflx']
-        db.commit()
-        
-        await message.reply_text(
-            f"✅ Payment Successful!\n\n"
-            f"🎁 You received: {pkg['bflx']:,} BFLX\n"
-            f"💰 Your new balance: {user.balance:,} BFLX\n\n"
-            f"Thank you for your support! 🌟"
-        )
+        if payment_type == 'diamonds':
+            if package_type not in DIAMOND_PACKAGES:
+                logger.error(f"Invalid diamond package: {package_type}")
+                await message.reply_text("❌ Invalid package. Please contact support.")
+                db.close()
+                return
+            pkg = DIAMOND_PACKAGES[package_type]
+            
+            if payment.total_amount != pkg['stars']:
+                logger.error(f"Payment amount mismatch")
+                await message.reply_text("❌ Payment amount is incorrect.")
+                db.close()
+                return
+            
+            payment_record = Payment(
+                user_id=user.id,
+                charge_id=payment.telegram_payment_charge_id,
+                invoice_payload=payment.invoice_payload,
+                amount_stars=payment.total_amount,
+                amount_diamonds=pkg['diamonds'],
+                payment_type='diamonds',
+                status='paid',
+                paid_at=datetime.utcnow()
+            )
+            db.add(payment_record)
+            
+            user.diamonds += pkg['diamonds']
+            db.commit()
+            
+            await message.reply_text(
+                f"✅ Payment Successful!\n\n"
+                f"💎 You received: {pkg['diamonds']} Diamonds\n"
+                f"💎 Your diamonds: {user.diamonds}\n\n"
+                f"Thank you! 🌟"
+            )
+        else:
+            if package_type not in BFLX_PACKAGES:
+                logger.error(f"Invalid BFLX package: {package_type}")
+                await message.reply_text("❌ Invalid package.")
+                db.close()
+                return
+            pkg = BFLX_PACKAGES[package_type]
+            
+            if payment.total_amount != pkg['stars']:
+                logger.error(f"Payment amount mismatch")
+                await message.reply_text("❌ Payment amount is incorrect.")
+                db.close()
+                return
+            
+            payment_record = Payment(
+                user_id=user.id,
+                charge_id=payment.telegram_payment_charge_id,
+                invoice_payload=payment.invoice_payload,
+                amount_stars=payment.total_amount,
+                amount_bflx=pkg['bflx'],
+                payment_type='bflx',
+                status='paid',
+                paid_at=datetime.utcnow()
+            )
+            db.add(payment_record)
+            
+            user.balance += pkg['bflx']
+            user.total_earned += pkg['bflx']
+            db.commit()
+            
+            await message.reply_text(
+                f"✅ Payment Successful!\n\n"
+                f"🎁 You received: {pkg['bflx']:,} BFLX\n"
+                f"💰 Your balance: {user.balance:,} BFLX\n\n"
+                f"Thank you! 🌟"
+            )
         
         logger.info(f"✅ Payment successful: User {user.id} bought {package_type} ({pkg['bflx']:,} BFLX) for {payment.total_amount} stars - Charge ID: {payment.telegram_payment_charge_id}")
         
@@ -993,6 +1042,7 @@ def create_invoice():
         data = request.json
         telegram_id = data.get('telegram_id')
         package_type = data.get('package')
+        payment_type = data.get('payment_type', 'bflx')
         
         if not telegram_id or not package_type:
             return jsonify({'error': 'Missing parameters'}), 400
@@ -1001,10 +1051,16 @@ def create_invoice():
             logger.warning(f"User ID mismatch: {user_data.get('id')} != {telegram_id}")
             return jsonify({'error': 'Unauthorized'}), 403
         
-        if package_type not in BFLX_PACKAGES:
-            return jsonify({'error': 'Invalid package'}), 400
-        
-        pkg = BFLX_PACKAGES[package_type]
+        if payment_type == 'diamonds':
+            if package_type not in DIAMOND_PACKAGES:
+                return jsonify({'error': 'Invalid package'}), 400
+            pkg = DIAMOND_PACKAGES[package_type]
+            description = f"Get {pkg['diamonds']} 💎 Diamonds"
+        else:
+            if package_type not in BFLX_PACKAGES:
+                return jsonify({'error': 'Invalid package'}), 400
+            pkg = BFLX_PACKAGES[package_type]
+            description = f"Get {pkg.get('bflx', 0):,} BFLX"
         
         # Create invoice using bot API - run in separate thread to avoid event loop conflicts
         import concurrent.futures
@@ -1018,11 +1074,12 @@ def create_invoice():
                 asyncio.set_event_loop(new_loop)
                 
                 try:
+                    payload = f"{payment_type}_{package_type}_{telegram_id}_{int(datetime.utcnow().timestamp())}"
                     result = new_loop.run_until_complete(
                         telegram_app.bot.create_invoice_link(
                             title=pkg['name'],
-                            description=f"احصل على {pkg['bflx']:,} BFLX",
-                            payload=f"{package_type}_{telegram_id}_{int(datetime.utcnow().timestamp())}",
+                            description=description,
+                            payload=payload,
                             provider_token="",
                             currency="XTR",
                             prices=[LabeledPrice(label=pkg['name'], amount=pkg['stars'])]
@@ -1045,14 +1102,18 @@ def create_invoice():
             invoice_link = None
         
         if invoice_link:
-            logger.info(f"✅ Invoice created for user {telegram_id}: {package_type} ({pkg['stars']} stars)")
-            return jsonify({
+            logger.info(f"✅ Invoice created for user {telegram_id}: {payment_type}/{package_type} ({pkg['stars']} stars)")
+            response_data = {
                 'success': True,
                 'invoice_link': invoice_link,
                 'package': pkg['name'],
-                'stars': pkg['stars'],
-                'bflx': pkg['bflx']
-            }), 200
+                'stars': pkg['stars']
+            }
+            if payment_type == 'diamonds':
+                response_data['diamonds'] = pkg['diamonds']
+            else:
+                response_data['bflx'] = pkg.get('bflx', 0)
+            return jsonify(response_data), 200
         else:
             logger.error(f"❌ Failed to create invoice for user {telegram_id}: {package_type}")
             return jsonify({'success': False, 'error': 'Failed to create invoice. Please try again.'}), 500
@@ -1084,6 +1145,66 @@ def get_leaderboard():
     except Exception as e:
         logger.error(f"Error getting leaderboard: {e}")
         return jsonify({'error': str(e)}), 500
+
+# ===== EXCHANGE SYSTEM =====
+@app.route('/api/exchange_diamonds', methods=['POST'])
+def exchange_diamonds():
+    """Exchange Diamonds for BFLX"""
+    from flask import jsonify, request
+    try:
+        init_data = request.headers.get('X-Telegram-Init-Data') or request.json.get('_auth')
+        if not init_data:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from webapp.telegram_auth import validate_telegram_webapp_data
+        user_data = validate_telegram_webapp_data(init_data, config.TELEGRAM_BOT_TOKEN)
+        
+        if not user_data:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        data = request.json
+        telegram_id = data.get('telegram_id')
+        diamond_cost = data.get('diamond_cost')
+        
+        if not telegram_id or diamond_cost is None:
+            return jsonify({'error': 'Missing parameters'}), 400
+        
+        EXCHANGE_RATES = {
+            10: 2500,
+            40: 10000,
+            160: 50000,
+            400: 150000
+        }
+        
+        bflx_amount = EXCHANGE_RATES.get(diamond_cost)
+        if not bflx_amount:
+            return jsonify({'error': 'Invalid exchange amount'}), 400
+        
+        db = get_db()
+        user = db.query(User).filter(User.id == telegram_id).first()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if user.diamonds < diamond_cost:
+            return jsonify({'error': 'Not enough Diamonds'}), 400
+        
+        user.diamonds -= diamond_cost
+        user.balance += bflx_amount
+        user.total_earned += bflx_amount
+        db.commit()
+        
+        logger.info(f"✅ User {telegram_id} exchanged {diamond_cost} 💎 for {bflx_amount} BFLX")
+        return jsonify({
+            'success': True,
+            'diamonds_spent': diamond_cost,
+            'bflx_received': bflx_amount,
+            'new_balance': user.balance,
+            'new_diamonds': user.diamonds
+        }), 200
+    except Exception as e:
+        logger.error(f"Error in exchange_diamonds: {e}")
+        return jsonify({'error': 'Server error'}), 500
 
 # ===== WALLET SYSTEM =====
 @app.route('/api/wallet/withdraw', methods=['POST'])

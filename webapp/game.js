@@ -1009,6 +1009,7 @@ async function buyDiamonds(packageType) {
             body: JSON.stringify({
                 telegram_id: user.id,
                 package: packageType,
+                payment_type: 'diamonds',
                 _auth: initData
             })
         });
@@ -1055,7 +1056,7 @@ async function buyDiamonds(packageType) {
     }
 }
 
-function exchangeDiamondsForBFLX(diamondCost) {
+async function exchangeDiamondsForBFLX(diamondCost) {
     const exchangeRates = {
         10: 2500,
         40: 10000,
@@ -1076,16 +1077,55 @@ function exchangeDiamondsForBFLX(diamondCost) {
         return;
     }
     
-    gameState.diamonds -= diamondCost;
-    gameState.bflx += bflxAmount;
-    gameState.totalEarned += bflxAmount;
-    checkLevelUp();
-    
-    showNotification(`✅ Exchanged ${diamondCost} 💎 for ${formatNumber(bflxAmount)} BFLX!`, 'success');
-    playSound('purchase');
-    triggerHaptic('medium');
-    updateUI();
-    saveGameState();
+    try {
+        const tg = window.Telegram?.WebApp;
+        if (!tg) {
+            showNotification('❌ Telegram WebApp not available', 'error');
+            return;
+        }
+        
+        const user = tg.initDataUnsafe?.user;
+        if (!user) {
+            showNotification('❌ User not found', 'error');
+            return;
+        }
+        
+        const initData = tg.initData;
+        
+        const response = await fetch('/api/exchange_diamonds', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-Init-Data': initData
+            },
+            body: JSON.stringify({
+                telegram_id: user.id,
+                diamond_cost: diamondCost,
+                _auth: initData
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            gameState.diamonds = data.new_diamonds;
+            gameState.bflx = data.new_balance;
+            gameState.totalEarned += bflxAmount;
+            checkLevelUp();
+            
+            showNotification(`✅ Exchanged ${diamondCost} 💎 for ${formatNumber(bflxAmount)} BFLX!`, 'success');
+            playSound('purchase');
+            triggerHaptic('medium');
+            updateUI();
+            saveGameState();
+        } else {
+            showNotification(`❌ ${data.error || 'Exchange failed'}`, 'error');
+            playSound('error');
+        }
+    } catch (error) {
+        console.error('Exchange error:', error);
+        showNotification('❌ Exchange error occurred', 'error');
+    }
 }
 
 async function buyBFLX(packageType) {
